@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import streamlit as st
 from openai import OpenAI
 import google.generativeai as genai
@@ -15,7 +15,10 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains import RetrievalQA
 
 # Load environment variables
-load_dotenv()
+# load_dotenv()
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 # Fungsi untuk membaca file PDF (dengan OCR jika diperlukan)
 def read_pdf(file_path):
