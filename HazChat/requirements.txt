@@ -1,21 +1,11 @@
+python-dotenv
+streamlit
 openai
-anthropic
 google-generativeai
-python-dotenv
-pytesseract
-Pillow
+anthropic
 PyMuPDF
 python-docx
-langchain
-faiss-cpu
-langchain-community
-openai
-tiktoken
-langchain
-python-dotenv
 pytesseract
-PyMuPDF
-python-docx
 Pillow
-faiss
-
+langchain
+faiss-cpu  # or faiss-gpu if you use GPU support
