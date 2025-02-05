@@ -10,3 +10,4 @@ Pillow
 langchain
 faiss-cpu  # or faiss-gpu if you use GPU support
 langchain_community
+tiktoken
