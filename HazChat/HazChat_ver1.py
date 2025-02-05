@@ -6,15 +6,15 @@ import anthropic
 import fitz  # PyMuPDF untuk PDF
 from docx import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import OpenAIEmbeddings
 
-# Load API Keys
+# API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-# Fungsi untuk membaca file PDF
+# Fungsi untuk membaca PDF
 def read_pdf(file_path):
     text = ""
     with fitz.open(file_path) as pdf:
@@ -22,26 +22,35 @@ def read_pdf(file_path):
             text += page.get_text() + "\n"
     return text
 
-# Fungsi untuk membaca file DOCX
+# Fungsi untuk membaca DOCX
 def read_docx(file_path):
     doc = Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
 
-# Load data berdasarkan role
+# Fungsi untuk load data
 def load_knowledge(role):
     role_folders = {"Laws": "data/regulation", "Engineer": "data/engineering"}
     data_folder = role_folders.get(role, "data")
     combined_text = ""
 
+    st.write(f"Memuat data dari folder: {data_folder}")
+
     if not os.path.exists(data_folder):
+        st.warning(f"Folder {data_folder} tidak ditemukan.")
         return ""
 
     for file_name in os.listdir(data_folder):
         file_path = os.path.join(data_folder, file_name)
+        st.write(f"Memproses file: {file_name}")
+
         if file_name.endswith(".pdf"):
-            combined_text += read_pdf(file_path) + "\n"
+            text = read_pdf(file_path)
+            st.write(f"Isi PDF (cuplikan): {text[:100]}")
+            combined_text += text + "\n"
         elif file_name.endswith(".docx"):
-            combined_text += read_docx(file_path) + "\n"
+            text = read_docx(file_path)
+            st.write(f"Isi DOCX (cuplikan): {text[:100]}")
+            combined_text += text + "\n"
 
     return combined_text
 
@@ -50,12 +59,13 @@ st.title("HazChat")
 role = st.selectbox("Pilih Role", ["Laws", "Engineer"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini", "DeepSeek", "Llama"])
 
-# Proses Knowledge Base
+# Load Knowledge Base
 knowledge_base = load_knowledge(role)
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
 chunks = text_splitter.split_text(knowledge_base)
+st.write(f"Jumlah chunks: {len(chunks)}")
 
-# Embedding dan FAISS
+# Embedding & FAISS
 embeddings = OpenAIEmbeddings()
 
 if chunks:
@@ -64,7 +74,7 @@ else:
     st.warning("Data untuk role ini kosong.")
     vector_store = None
 
-# Fungsi untuk mengatur provider
+# Fungsi untuk set provider
 def set_provider(provider):
     if provider == "OpenAI":
         return OpenAI(api_key=OPENAI_API_KEY)
@@ -110,7 +120,7 @@ def get_response(provider, client, prompt):
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}"
 
-# Menyimpan dan Menampilkan Chat History
+# Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
