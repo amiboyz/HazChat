@@ -9,7 +9,6 @@ python-docx
 langchain
 faiss-cpu
 langchain-community
-
 openai
 tiktoken
 langchain
@@ -18,7 +17,5 @@ pytesseract
 PyMuPDF
 python-docx
 Pillow
-gradio
-google-generativeai
-anthropic
-faiss-cpu
+faiss
+
