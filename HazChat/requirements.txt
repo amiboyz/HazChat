@@ -10,3 +10,15 @@ langchain
 faiss-cpu
 langchain-community
 
+openai
+tiktoken
+langchain
+python-dotenv
+pytesseract
+PyMuPDF
+python-docx
+Pillow
+gradio
+google-generativeai
+anthropic
+faiss-cpu
