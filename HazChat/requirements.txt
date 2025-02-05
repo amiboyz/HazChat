@@ -1,0 +1,11 @@
+openai
+anthropic
+google-generativeai
+python-dotenv
+pytesseract
+Pillow
+PyMuPDF
+python-docx
+langchain
+faiss-cpu
+
