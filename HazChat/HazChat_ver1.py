@@ -13,7 +13,7 @@ from langchain_community.embeddings import OpenAIEmbeddings
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-st.write(os.listdir("data")) 
+
 # Fungsi untuk membaca PDF
 def read_pdf(file_path):
     text = ""
