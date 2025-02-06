@@ -27,6 +27,9 @@ def read_docx(file_path):
     doc = Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
 
+st.write("Current working directory:", os.getcwd())
+st.write("Isi direktori utama:", os.listdir(os.getcwd()))
+
 # Fungsi untuk load data
 def load_knowledge(role):
     role_folders = {"Laws": "regulation", "Engineer": "engineering"}
