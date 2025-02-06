@@ -14,7 +14,12 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-# Fungsi untuk membaca PDF
+import os
+import streamlit as st
+from docx import Document
+import fitz  # PyMuPDF
+
+# Fungsi membaca PDF
 def read_pdf(file_path):
     text = ""
     with fitz.open(file_path) as pdf:
@@ -22,37 +27,43 @@ def read_pdf(file_path):
             text += page.get_text() + "\n"
     return text
 
-# Fungsi untuk membaca DOCX
+# Fungsi membaca DOCX
 def read_docx(file_path):
     doc = Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
 
-st.write("Current working directory:", os.getcwd())
-st.write("Isi direktori utama:", os.listdir(os.getcwd()))
-
-# Fungsi untuk load data
+# Fungsi load data dari folder yang benar
 def load_knowledge(role):
     role_folders = {"Laws": "regulation", "Engineer": "engineering"}
-    data_folder = role_folders.get(role, "data")
-    combined_text = ""
 
-    st.write(f"Memuat data dari folder: {data_folder}")
+    # Pastikan path utama ke folder `data`
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Ambil root proyek
+    data_folder = os.path.join(BASE_DIR, "data", role_folders.get(role, "data"))
+
+    combined_text = ""
+    
+    st.write(f"📂 Memuat data dari folder: {data_folder}")
 
     if not os.path.exists(data_folder):
-        st.warning(f"Folder {data_folder} tidak ditemukan.")
+        st.warning(f"⚠️ Folder {data_folder} tidak ditemukan.")
         return ""
 
     for file_name in os.listdir(data_folder):
         file_path = os.path.join(data_folder, file_name)
-        st.write(f"Memproses file: {file_name}")
+        
+        # Pastikan hanya memproses file yang benar
+        if not os.path.isfile(file_path):
+            continue
+        
+        st.write(f"📄 Memproses file: {file_name}")
 
         if file_name.endswith(".pdf"):
             text = read_pdf(file_path)
-            st.write(f"Isi PDF (cuplikan): {text[:100]}")
+            st.write(f"📑 Isi PDF (cuplikan): {text[:100]}")
             combined_text += text + "\n"
         elif file_name.endswith(".docx"):
             text = read_docx(file_path)
-            st.write(f"Isi DOCX (cuplikan): {text[:100]}")
+            st.write(f"📑 Isi DOCX (cuplikan): {text[:100]}")
             combined_text += text + "\n"
 
     return combined_text
