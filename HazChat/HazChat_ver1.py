@@ -14,9 +14,18 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-st.write("Cek apakah folder data ada:", os.path.exists("data"))
-st.write("Cek apakah folder regulation ada:", os.path.exists("data/regulation"))
-st.write("Cek apakah folder engineering ada:", os.path.exists("data/engineering"))
+# st.write("Cek apakah folder data ada:", os.path.exists("data"))
+# st.write("Cek apakah folder regulation ada:", os.path.exists("data/regulation"))
+# st.write("Cek apakah folder engineering ada:", os.path.exists("data/engineering"))
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Path folder utama
+DATA_FOLDER = os.path.join(BASE_DIR, "data", role.lower())  # Sesuai role
+
+st.write(f"Mencari file di: {DATA_FOLDER}")
+
+if not os.path.exists(DATA_FOLDER):
+    st.warning(f"Folder {DATA_FOLDER} tidak ditemukan.")
+
 
 # Fungsi untuk membaca PDF
 def read_pdf(file_path):
