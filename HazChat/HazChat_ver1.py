@@ -14,6 +14,10 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
+st.write("Cek apakah folder data ada:", os.path.exists("data"))
+st.write("Cek apakah folder regulation ada:", os.path.exists("data/regulation"))
+st.write("Cek apakah folder engineering ada:", os.path.exists("data/engineering"))
+
 # Fungsi untuk membaca PDF
 def read_pdf(file_path):
     text = ""
