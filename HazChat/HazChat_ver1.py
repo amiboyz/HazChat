@@ -14,8 +14,6 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-st.write(os.listdir("data"))
-
 # Fungsi untuk membaca PDF
 def read_pdf(file_path):
     text = ""
@@ -29,7 +27,7 @@ def read_docx(file_path):
     doc = Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
 
-# # Fungsi untuk load data
+# Fungsi untuk load data
 def load_knowledge(role):
     role_folders = {"Laws": "data/regulation", "Engineer": "data/engineering"}
     data_folder = role_folders.get(role, "data")
