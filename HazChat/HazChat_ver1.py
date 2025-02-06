@@ -42,7 +42,7 @@ def load_knowledge(role):
 
     combined_text = ""
     
-    st.write(f"📂 Memuat data dari folder: {data_folder}")
+    # st.write(f"📂 Memuat data dari folder: {data_folder}")
 
     if not os.path.exists(data_folder):
         st.warning(f"⚠️ Folder {data_folder} tidak ditemukan.")
@@ -55,15 +55,15 @@ def load_knowledge(role):
         if not os.path.isfile(file_path):
             continue
         
-        st.write(f"📄 Memproses file: {file_name}")
+        # st.write(f"📄 Memproses file: {file_name}")
 
         if file_name.endswith(".pdf"):
             text = read_pdf(file_path)
-            st.write(f"📑 Isi PDF (cuplikan): {text[:100]}")
+            # st.write(f"📑 Isi PDF (cuplikan): {text[:100]}")
             combined_text += text + "\n"
         elif file_name.endswith(".docx"):
             text = read_docx(file_path)
-            st.write(f"📑 Isi DOCX (cuplikan): {text[:100]}")
+            # st.write(f"📑 Isi DOCX (cuplikan): {text[:100]}")
             combined_text += text + "\n"
 
     return combined_text
