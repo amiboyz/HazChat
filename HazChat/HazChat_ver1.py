@@ -18,15 +18,6 @@ GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 # st.write("Cek apakah folder regulation ada:", os.path.exists("data/regulation"))
 # st.write("Cek apakah folder engineering ada:", os.path.exists("data/engineering"))
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Path folder utama
-DATA_FOLDER = os.path.join(BASE_DIR, "data", role.lower())  # Sesuai role
-
-st.write(f"Mencari file di: {DATA_FOLDER}")
-
-if not os.path.exists(DATA_FOLDER):
-    st.warning(f"Folder {DATA_FOLDER} tidak ditemukan.")
-
-
 # Fungsi untuk membaca PDF
 def read_pdf(file_path):
     text = ""
@@ -71,6 +62,16 @@ def load_knowledge(role):
 st.title("HazChat")
 role = st.selectbox("Pilih Role", ["Laws", "Engineer"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini", "DeepSeek", "Llama"])
+
+# 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Path folder utama
+DATA_FOLDER = os.path.join(BASE_DIR, "data", role.lower())  # Sesuai role
+
+st.write(f"Mencari file di: {DATA_FOLDER}")
+
+if not os.path.exists(DATA_FOLDER):
+    st.warning(f"Folder {DATA_FOLDER} tidak ditemukan.")
+
 
 # Load Knowledge Base
 knowledge_base = load_knowledge(role)
