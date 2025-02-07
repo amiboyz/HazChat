@@ -124,9 +124,17 @@ if prompt:
         st.markdown(prompt)
     
     client = set_provider(provider)
-    response, token_usage = get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering) if client else "Provider belum diatur."
-    
+    if provider == "OpenAI":
+        response, token_usage = get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering) if client else "Provider belum diatur."
+    if provider == "Gemini":
+        response = get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering) if client else "Provider belum diatur."
+   
     st.session_state.messages.append({"role": "assistant", "content": response})
-    with st.chat_message("assistant"):
-        st.markdown(response)
-        st.info(f"📊 Token digunakan: **{token_usage}**")
+    if provider == "OpenAI":
+        with st.chat_message("assistant"):
+            st.markdown(response)
+            st.info(f"📊 Token digunakan: **{token_usage}**")
+    if provider == "Gemini":
+        with st.chat_message("assistant"):
+            st.markdown(response)
+        
