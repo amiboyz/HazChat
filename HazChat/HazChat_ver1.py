@@ -44,7 +44,7 @@ def read_docx(file_path):
 
 # Fungsi load data dari folder yang benar
 def load_knowledge(role):
-    role_folders = {"Laws": "regulation", "Engineer": "engineering"}
+    role_folders = {"Laws": "regulation", "Engineering": "engineering"}
     BASE_DIR = os.getcwd()
     data_folder = os.path.join(BASE_DIR, "data", role_folders.get(role, "data"))
     
@@ -87,7 +87,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
     
     if role == "Laws":
         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\n{prompt_laws}\n\nPertanyaan: {prompt}"
-    elif role == "Engineer":
+    elif role == "Engineering":
         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\n{prompt_engineering}\n\nPertanyaan: {prompt}"
     else:
         return "Peran tidak dikenali."
@@ -115,7 +115,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
 
 # Streamlit UI
 st.title("HazChat")
-role = st.selectbox("Pilih Role", ["Laws", "Engineer"])
+role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
 # Load Knowledge Base
