@@ -86,9 +86,9 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
     context = "\n".join([doc.page_content for doc in relevant_docs])
     
     if role == "Laws":
-        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\n{prompt_laws}\n\nPertanyaan: {prompt}"
+        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
     elif role == "Engineering":
-        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\n{prompt_engineering}\n\nPertanyaan: {prompt}"
+        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_engineering}\n\n{context}\n\nPertanyaan: {prompt}"
     else:
         return "Peran tidak dikenali."
     
