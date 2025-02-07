@@ -25,6 +25,21 @@ def run_precompute_embeddings():
     os.system("python precompute_embeddings.py")
     st.success("✅ Embedding selesai! Silakan refresh halaman.")
 
+# Fungsi memuat prompt dari file
+def load_prompts():
+    prompt_dir = os.path.join(os.getcwd(), "add_prompt")
+
+    prompt_engineering_path = os.path.join(prompt_dir, "prompt_engineering.txt")
+    prompt_laws_path = os.path.join(prompt_dir, "prompt_laws.txt")
+
+    prompt_engineering = open(prompt_engineering_path, "r", encoding="utf-8").read() if os.path.exists(prompt_engineering_path) else "Tidak ada prompt engineering tersedia."
+    prompt_laws = open(prompt_laws_path, "r", encoding="utf-8").read() if os.path.exists(prompt_laws_path) else "Tidak ada prompt laws tersedia."
+
+    return prompt_engineering, prompt_laws
+
+# Memuat prompt
+prompt_engineering, prompt_laws = load_prompts()
+
 # Streamlit UI
 st.title("HazChat")
 role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
@@ -39,7 +54,7 @@ vector_store = load_faiss(role)
 if vector_store:
     st.success(f"✅ Knowledge base untuk {role} berhasil dimuat!")
 else:
-    st.warning(f"⚠️ Tidak ada knowledge base untuk {role}. Klik tombol di atas untuk membuat embedding.")
+    st.warning(f"⚠️ Tidak ada knowledge base untuk {role}. Chatbot tetap bisa berjalan hanya dengan prompt bawaan.")
 
 # Fungsi untuk memilih provider
 def set_provider(provider):
@@ -53,15 +68,22 @@ def set_provider(provider):
     return None
 
 # Fungsi untuk mendapatkan respons
-def get_response(provider, client, prompt, role, vector_store):
-    if not vector_store:
-        return "Knowledge base kosong. Silakan buat embedding dulu."
+def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
+    # Jika FAISS tersedia, gunakan retrieval
+    if vector_store:
+        retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+        relevant_docs = retriever.get_relevant_documents(prompt)
+        context = "\n".join([doc.page_content for doc in relevant_docs])
+    else:
+        context = ""
 
-    retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
-    relevant_docs = retriever.get_relevant_documents(prompt)
-    context = "\n".join([doc.page_content for doc in relevant_docs])
-
-    augmented_prompt = f"Gunakan informasi berikut:\n{context}\n\nPertanyaan: {prompt}"
+    # Jika FAISS tidak ada, hanya gunakan prompt default
+    if role == "Laws":
+        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
+    elif role == "Engineering":
+        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_engineering}\n\n{context}\n\nPertanyaan: {prompt}"
+    else:
+        return "Peran tidak dikenali."
 
     try:
         if provider == "OpenAI":
@@ -88,7 +110,7 @@ def get_response(provider, client, prompt, role, vector_store):
 prompt = st.chat_input("Masukkan prompt...")
 if prompt:
     client = set_provider(provider)
-    response = get_response(provider, client, prompt, role, vector_store) if client else "Provider belum diatur."
+    response = get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering) if client else "Provider belum diatur."
     
     st.chat_message("user").markdown(prompt)
     st.chat_message("assistant").markdown(response)
