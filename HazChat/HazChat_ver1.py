@@ -28,13 +28,18 @@ def load_faiss(role):
 
 # Fungsi untuk menjalankan precompute_embeddings.py
 def run_precompute_embeddings():
-    # Gunakan subprocess untuk menjalankan skrip Python
     try:
-        subprocess.run(["python", "precompute_embeddings.py"], check=True)
+        # Menjalankan skrip precompute_embeddings.py menggunakan subprocess
+        result = subprocess.run(["python", "precompute_embeddings.py"], check=True, capture_output=True, text=True)
         st.success("✅ Embedding selesai!")
-    except subprocess.CalledProcessError as e:
-        st.error(f"❌ Terjadi kesalahan saat menjalankan precompute_embeddings.py: {e}")
-
+        st.write(f"Output: {result.stdout}")
+    except Exception as e:
+        # Menangani kesalahan jika ada masalah saat menjalankan skrip
+        st.error(f"❌ Terjadi kesalahan saat menjalankan precompute_embeddings.py: {str(e)}")
+        if e.stdout:
+            st.write(f"stdout: {e.stdout}")
+        if e.stderr:
+            st.write(f"stderr: {e.stderr}")
 
 # Fungsi memuat prompt dari file
 def load_prompts():
