@@ -4,6 +4,7 @@ import pickle
 from openai import OpenAI
 import google.generativeai as genai
 import anthropic
+import fitz
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OpenAIEmbeddings
