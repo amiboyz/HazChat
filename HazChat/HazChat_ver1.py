@@ -13,6 +13,11 @@ from langchain_community.embeddings import OpenAIEmbeddings
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+
+# Inisialisasi vector_store di awal
+if "vector_store" not in st.session_state:
+    st.session_state.vector_store = None
+
 # Fungsi membaca PDF
 def read_pdf(file_path):
     text = ""
@@ -71,6 +76,7 @@ role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
 # **Tombol untuk melakukan embedding ulang**
+# **Tombol untuk melakukan embedding ulang**
 if st.button("🔄 Jalankan Embedding"):
     knowledge_base = load_knowledge(role)
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
@@ -79,12 +85,7 @@ if st.button("🔄 Jalankan Embedding"):
     
     # Embedding & FAISS
     embeddings = OpenAIEmbeddings()
-    vector_store = FAISS.from_texts(chunks, embedding=embeddings)
-    # if chunks:
-    #     vector_store = FAISS.from_texts(chunks, embedding=embeddings)
-    # else:
-    #     st.warning("Data untuk role ini kosong.")
-    #     vector_store = None
+    st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
 
 # Fungsi untuk memilih provider
 def set_provider(provider):
@@ -98,9 +99,10 @@ def set_provider(provider):
     return None
 
 # Fungsi untuk mendapatkan respons
+# Fungsi untuk mendapatkan respons
 def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
     # Jika FAISS tersedia, gunakan retrieval
-    if vector_store:
+    if vector_store is not None:
         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
         relevant_docs = retriever.get_relevant_documents(prompt)
         context = "\n".join([doc.page_content for doc in relevant_docs])
@@ -113,7 +115,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
     elif role == "Engineering":
         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_engineering}\n\n{context}\n\nPertanyaan: {prompt}"
     else:
-        return "Peran tidak dikenali."
+        return "Peran tidak dikenali.", 0  # Kembalikan token_usage default
 
     try:
         token_usage = 0  # Default token usage
@@ -131,13 +133,13 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
                 max_tokens=1024,
                 messages=[{"role": "user", "content": augmented_prompt}]
             )
-            return response.content
+            return response.content, token_usage
         elif provider == "Gemini":
             model = client.GenerativeModel("gemini-pro")
             response = model.generate_content(augmented_prompt)
-            return response.text
+            return response.text, token_usage
     except Exception as e:
-        return f"Terjadi kesalahan: {str(e)}"
+        return f"Terjadi kesalahan: {str(e)}", 0
     
 # Chat History
 if "messages" not in st.session_state:
@@ -154,17 +156,15 @@ if prompt:
         st.markdown(prompt)
     
     client = set_provider(provider)
-    if provider == "OpenAI":
-        response, token_usage = get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering) if client else "Provider belum diatur."
-    if provider == "Gemini":
-        response = get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering) if client else "Provider belum diatur."
-   
+    if client:
+        response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
+    else:
+        response = "Provider belum diatur."
+        token_usage = 0
+    
     st.session_state.messages.append({"role": "assistant", "content": response})
-    if provider == "OpenAI":
-        with st.chat_message("assistant"):
-            st.markdown(response)
+    with st.chat_message("assistant"):
+        st.markdown(response)
+        if provider == "OpenAI":
             st.info(f"📊 Token digunakan: **{token_usage}**")
-    if provider == "Gemini":
-        with st.chat_message("assistant"):
-            st.markdown(response)
         
