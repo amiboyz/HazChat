@@ -71,11 +71,11 @@ def load_prompts():
 prompt_engineering, prompt_laws = load_prompts()
 
 # Streamlit UI
-st.title("HazChat (Hazmi Chatbot)")
+st.title("HazChat (Hazmi Chatbot keren)")
 role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
-# **Tombol untuk melakukan embedding ulang**
+
 # **Tombol untuk melakukan embedding ulang**
 if st.button("🔄 Jalankan Embedding"):
     knowledge_base = load_knowledge(role)
@@ -98,7 +98,6 @@ def set_provider(provider):
         return genai
     return None
 
-# Fungsi untuk mendapatkan respons
 # Fungsi untuk mendapatkan respons
 def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
     # Jika FAISS tersedia, gunakan retrieval
