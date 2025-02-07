@@ -49,37 +49,7 @@ def load_knowledge(role):
     
     return combined_text
 
-# Fungsi untuk memuat FAISS yang sudah ada
-# def load_faiss(role):
-#     file_path = f"faiss_{role}.pkl"
-    
-#     # Debug: Periksa apakah file ada
-#     st.write(f"Memeriksa keberadaan file: {file_path}")
-    
-#     if os.path.exists(file_path):
-#         with open(file_path, "rb") as f:
-#             st.write("📂 FAISS berhasil dimuat!")
-#             return pickle.load(f)
-#     else:
-#         st.warning(f"⚠️ FAISS tidak ditemukan untuk {role}.")
-#         return None
-
-# Fungsi untuk menjalankan precompute_embeddings.py
-# def run_precompute_embeddings():
-#     try:
-#         # Menjalankan skrip precompute_embeddings.py menggunakan subprocess
-#         result = subprocess.run(["python", "precompute_embeddings.py"], check=True, capture_output=True, text=True)
-#         st.success("✅ Embedding selesai!")
-#         st.write(f"Output: {result.stdout}")
-#     except Exception as e:
-#         # Menangani kesalahan jika ada masalah saat menjalankan skrip
-#         st.error(f"❌ Terjadi kesalahan saat menjalankan precompute_embeddings.py: {str(e)}")
-#         if e.stdout:
-#             st.write(f"stdout: {e.stdout}")
-#         if e.stderr:
-#             st.write(f"stderr: {e.stderr}")
-
-            
+           
 # Fungsi memuat prompt dari file
 def load_prompts():
     prompt_dir = os.path.join(os.getcwd(), "add_prompt")
@@ -109,12 +79,12 @@ if st.button("🔄 Jalankan Embedding"):
     
     # Embedding & FAISS
     embeddings = OpenAIEmbeddings()
-
-    if chunks:
-        vector_store = FAISS.from_texts(chunks, embedding=embeddings)
-    else:
-        st.warning("Data untuk role ini kosong.")
-        vector_store = None
+    vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+    # if chunks:
+    #     vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+    # else:
+    #     st.warning("Data untuk role ini kosong.")
+    #     vector_store = None
 
 # Fungsi untuk memilih provider
 def set_provider(provider):
