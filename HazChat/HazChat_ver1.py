@@ -28,38 +28,25 @@ def read_docx(file_path):
 
 # Fungsi load data dari folder yang benar
 def load_knowledge(role):
-    role_folders = {"Laws": "regulation", "Engineer": "engineering"}
-
-    # Pastikan path utama ke folder `data`
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Ambil root proyek
+    role_folders = {"Laws": "regulation", "Engineering": "engineering"}
+    BASE_DIR = os.getcwd()
     data_folder = os.path.join(BASE_DIR, "data", role_folders.get(role, "data"))
-
-    combined_text = ""
     
-    # st.write(f"📂 Memuat data dari folder: {data_folder}")
-
+    combined_text = ""
     if not os.path.exists(data_folder):
         st.warning(f"⚠️ Folder {data_folder} tidak ditemukan.")
         return ""
-
+    
     for file_name in os.listdir(data_folder):
         file_path = os.path.join(data_folder, file_name)
-        
-        # Pastikan hanya memproses file yang benar
         if not os.path.isfile(file_path):
             continue
         
-        # st.write(f"📄 Memproses file: {file_name}")
-
         if file_name.endswith(".pdf"):
-            text = read_pdf(file_path)
-            # st.write(f"📑 Isi PDF (cuplikan): {text[:100]}")
-            combined_text += text + "\n"
+            combined_text += read_pdf(file_path) + "\n"
         elif file_name.endswith(".docx"):
-            text = read_docx(file_path)
-            # st.write(f"📑 Isi DOCX (cuplikan): {text[:100]}")
-            combined_text += text + "\n"
-
+            combined_text += read_docx(file_path) + "\n"
+    
     return combined_text
 
 # Fungsi untuk memuat FAISS yang sudah ada
