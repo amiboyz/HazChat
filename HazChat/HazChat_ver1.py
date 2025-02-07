@@ -166,5 +166,5 @@ if prompt:
     with st.chat_message("assistant"):
         st.markdown(response)
         if provider == "OpenAI":
-            st.info(f"📊 Token digunakan: **{token_usage}**")
+            st.write(f"📊 Token digunakan: **{token_usage}**")
         
