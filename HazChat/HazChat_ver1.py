@@ -14,16 +14,27 @@ GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 # Fungsi untuk memuat FAISS yang sudah ada
 def load_faiss(role):
     file_path = f"faiss_{role}.pkl"
+    
+    # Debug: Periksa apakah file ada
+    st.write(f"Memeriksa keberadaan file: {file_path}")
+    
     if os.path.exists(file_path):
         with open(file_path, "rb") as f:
+            st.write("📂 FAISS berhasil dimuat!")
             return pickle.load(f)
     else:
+        st.warning(f"⚠️ FAISS tidak ditemukan untuk {role}.")
         return None
 
 # Fungsi untuk menjalankan precompute_embeddings.py
 def run_precompute_embeddings():
-    os.system("precompute_embeddings.py")
-    st.success("✅ Embedding selesai! Silakan refresh halaman.")
+    # Gunakan subprocess untuk menjalankan skrip Python
+    try:
+        subprocess.run(["python", "precompute_embeddings.py"], check=True)
+        st.success("✅ Embedding selesai!")
+    except subprocess.CalledProcessError as e:
+        st.error(f"❌ Terjadi kesalahan saat menjalankan precompute_embeddings.py: {e}")
+
 
 # Fungsi memuat prompt dari file
 def load_prompts():
@@ -41,12 +52,12 @@ def load_prompts():
 prompt_engineering, prompt_laws = load_prompts()
 
 # Streamlit UI
-st.title("HazChat")
+st.title("HazChat (Hazmi Chatbot)")
 role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
 # **Tombol untuk melakukan embedding ulang**
-if st.button("🔄 Jalankan Embedding (Jika Ada Data Baru)"):
+if st.button("🔄 Jalankan Embedding"):
     run_precompute_embeddings()
 
 # Load FAISS
