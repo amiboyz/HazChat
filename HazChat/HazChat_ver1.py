@@ -14,11 +14,31 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-# Membaca prompt role
-with open('prompt_engineering.txt', 'r', encoding='utf-8') as file:
-    prompt_engineering = file.read()
-with open('prompt_laws.txt', 'r', encoding='utf-8') as file:
-    prompt_laws = file.read()
+def load_prompts():
+    try:
+        # Pastikan file ada
+        if os.path.exists('prompt_engineering.txt'):
+            with open('prompt_engineering.txt', 'r', encoding='utf-8') as file:
+                prompt_engineering = file.read()
+        else:
+            prompt_engineering = None
+            st.warning("⚠️ File 'prompt_engineering.txt' tidak ditemukan.")
+        
+        if os.path.exists('prompt_laws.txt'):
+            with open('prompt_laws.txt', 'r', encoding='utf-8') as file:
+                prompt_laws = file.read()
+        else:
+            prompt_laws = None
+            st.warning("⚠️ File 'prompt_laws.txt' tidak ditemukan.")
+
+        return prompt_engineering, prompt_laws
+
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat memuat file: {str(e)}")
+        return None, None
+
+# Memuat prompt
+prompt_engineering, prompt_laws = load_prompts()
 
 
 # Fungsi membaca PDF
