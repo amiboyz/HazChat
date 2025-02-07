@@ -85,7 +85,7 @@ if knowledge_base:
         vector_store = None
 
 else:
-    st.warning("Knowledge base kosong atau role 'Initial' dipilih.")
+    st.warning("Role 'Initial' dipilih (tanpa base knowledge).")
     vector_store = None
 
 # Embedding & FAISS
