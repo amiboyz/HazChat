@@ -105,7 +105,14 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
             return response.text
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}"
+    
+# Chat History
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 # Chat Input
 prompt = st.chat_input("Masukkan prompt...")
 if prompt:
