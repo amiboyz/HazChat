@@ -5,26 +5,76 @@ from openai import OpenAI
 import google.generativeai as genai
 import anthropic
 from langchain_community.vectorstores import FAISS
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import OpenAIEmbeddings
 
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+# Fungsi membaca PDF
+def read_pdf(file_path):
+    text = ""
+    with fitz.open(file_path) as pdf:
+        for page in pdf:
+            text += page.get_text() + "\n"
+    return text
+
+# Fungsi membaca DOCX
+def read_docx(file_path):
+    doc = Document(file_path)
+    return "\n".join([para.text for para in doc.paragraphs])
+
+# Fungsi load data dari folder yang benar
+def load_knowledge(role):
+    role_folders = {"Laws": "regulation", "Engineer": "engineering"}
+
+    # Pastikan path utama ke folder `data`
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Ambil root proyek
+    data_folder = os.path.join(BASE_DIR, "data", role_folders.get(role, "data"))
+
+    combined_text = ""
+    
+    # st.write(f"📂 Memuat data dari folder: {data_folder}")
+
+    if not os.path.exists(data_folder):
+        st.warning(f"⚠️ Folder {data_folder} tidak ditemukan.")
+        return ""
+
+    for file_name in os.listdir(data_folder):
+        file_path = os.path.join(data_folder, file_name)
+        
+        # Pastikan hanya memproses file yang benar
+        if not os.path.isfile(file_path):
+            continue
+        
+        # st.write(f"📄 Memproses file: {file_name}")
+
+        if file_name.endswith(".pdf"):
+            text = read_pdf(file_path)
+            # st.write(f"📑 Isi PDF (cuplikan): {text[:100]}")
+            combined_text += text + "\n"
+        elif file_name.endswith(".docx"):
+            text = read_docx(file_path)
+            # st.write(f"📑 Isi DOCX (cuplikan): {text[:100]}")
+            combined_text += text + "\n"
+
+    return combined_text
 
 # Fungsi untuk memuat FAISS yang sudah ada
-def load_faiss(role):
-    file_path = f"faiss_{role}.pkl"
+# def load_faiss(role):
+#     file_path = f"faiss_{role}.pkl"
     
-    # Debug: Periksa apakah file ada
-    st.write(f"Memeriksa keberadaan file: {file_path}")
+#     # Debug: Periksa apakah file ada
+#     st.write(f"Memeriksa keberadaan file: {file_path}")
     
-    if os.path.exists(file_path):
-        with open(file_path, "rb") as f:
-            st.write("📂 FAISS berhasil dimuat!")
-            return pickle.load(f)
-    else:
-        st.warning(f"⚠️ FAISS tidak ditemukan untuk {role}.")
-        return None
+#     if os.path.exists(file_path):
+#         with open(file_path, "rb") as f:
+#             st.write("📂 FAISS berhasil dimuat!")
+#             return pickle.load(f)
+#     else:
+#         st.warning(f"⚠️ FAISS tidak ditemukan untuk {role}.")
+#         return None
 
 # Fungsi untuk menjalankan precompute_embeddings.py
 # def run_precompute_embeddings():
@@ -34,12 +84,12 @@ def load_faiss(role):
 #         st.success("✅ Embedding selesai!")
 #         st.write(f"Output: {result.stdout}")
 #     except Exception as e:
-        # Menangani kesalahan jika ada masalah saat menjalankan skrip
-        st.error(f"❌ Terjadi kesalahan saat menjalankan precompute_embeddings.py: {str(e)}")
-        if e.stdout:
-            st.write(f"stdout: {e.stdout}")
-        if e.stderr:
-            st.write(f"stderr: {e.stderr}")
+#         # Menangani kesalahan jika ada masalah saat menjalankan skrip
+#         st.error(f"❌ Terjadi kesalahan saat menjalankan precompute_embeddings.py: {str(e)}")
+#         if e.stdout:
+#             st.write(f"stdout: {e.stdout}")
+#         if e.stderr:
+#             st.write(f"stderr: {e.stderr}")
 
             
 # Fungsi memuat prompt dari file
@@ -63,15 +113,20 @@ role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
 # **Tombol untuk melakukan embedding ulang**
-# if st.button("🔄 Jalankan Embedding"):
-#     run_precompute_embeddings()
+if st.button("🔄 Jalankan Embedding"):
+    knowledge_base = load_knowledge(role)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    chunks = text_splitter.split_text(knowledge_base)
+    st.write(f"Jumlah chunks: {len(chunks)}")
+    
+    # Embedding & FAISS
+    embeddings = OpenAIEmbeddings()
 
-# Load FAISS
-vector_store = load_faiss(role)
-if vector_store:
-    st.success(f"✅ Knowledge base untuk {role} berhasil dimuat!")
-else:
-    st.warning(f"⚠️ Tidak ada knowledge base untuk {role}. Chatbot tetap bisa berjalan hanya dengan prompt bawaan.")
+    if chunks:
+        vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+    else:
+        st.warning("Data untuk role ini kosong.")
+        vector_store = None
 
 # Fungsi untuk memilih provider
 def set_provider(provider):
