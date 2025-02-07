@@ -22,7 +22,7 @@ def load_faiss(role):
 
 # Fungsi untuk menjalankan precompute_embeddings.py
 def run_precompute_embeddings():
-    os.system("python precompute_embeddings.py")
+    os.system("precompute_embeddings.py")
     st.success("✅ Embedding selesai! Silakan refresh halaman.")
 
 # Fungsi memuat prompt dari file
