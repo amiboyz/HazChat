@@ -14,13 +14,6 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-# Membaca prompt role
-with open('prompt_engineering.txt', 'r', encoding='utf-8') as file:
-    prompt_engineering = file.read()
-with open('prompt_laws.txt', 'r', encoding='utf-8') as file:
-    prompt_laws = file.read()
-
-
 # Fungsi membaca PDF
 def read_pdf(file_path):
     text = ""
@@ -103,48 +96,7 @@ def set_provider(provider):
         return None
 
 # Fungsi untuk mendapatkan respons
-# def get_response(provider, client, prompt):
-#     if not vector_store:
-#         return "Knowledge base kosong."
-
-#     retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
-#     relevant_docs = retriever.get_relevant_documents(prompt)
-#     context = "\n".join([doc.page_content for doc in relevant_docs])
-#         if role == "Laws":
-#             augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\n dan {prompt_laws} Pertanyaan: {prompt}"
-#         elif role == "Engineer":
-#             augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\n dan {prompt_engineering} Pertanyaan: {prompt}"
-#     try:
-#         if provider == "OpenAI":
-#             response = client.chat.completions.create(
-#                 model="gpt-3.5-turbo",
-#                 messages=[{"role": "user", "content": augmented_prompt}]
-#             )
-#             return response.choices[0].message.content
-#         elif provider == "Anthropic":
-#             response = client.messages.create(
-#                 model="claude-2",
-#                 max_tokens=1024,
-#                 messages=[{"role": "user", "content": augmented_prompt}]
-#             )
-#             return response.content
-#         elif provider == "Gemini":
-#             model = client.GenerativeModel("gemini-pro")
-#             response = model.generate_content(augmented_prompt)
-#             return response.text
-#         else:
-#             return f"Konfigurasi untuk {provider} belum diimplementasikan."
-#     except Exception as e:
-#         return f"Terjadi kesalahan: {str(e)}"
-import streamlit as st
-
-# Pastikan bahwa fungsi `set_provider` sudah didefinisikan sebelumnya.
-def set_provider(provider):
-    # Implementasi untuk memilih provider yang sesuai.
-    # Misalnya, dapat mengembalikan klien terkait, seperti OpenAI, Anthropic, atau Gemini
-    pass
-
-def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
+def get_response(provider, client, prompt):
     if not vector_store:
         return "Knowledge base kosong."
 
@@ -152,12 +104,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
     relevant_docs = retriever.get_relevant_documents(prompt)
     context = "\n".join([doc.page_content for doc in relevant_docs])
 
-    if role == "Laws":
-        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\n dan {prompt_laws} Pertanyaan: {prompt}"
-    elif role == "Engineer":
-        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\n dan {prompt_engineering} Pertanyaan: {prompt}"
-    else:
-        return "Peran tidak dikenali."
+    augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\nPertanyaan: {prompt}"
 
     try:
         if provider == "OpenAI":
@@ -182,12 +129,10 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}"
 
-
 # Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display the chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
@@ -200,19 +145,8 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Menetapkan provider yang digunakan
-    provider = "OpenAI"  # Tentukan provider yang diinginkan, misalnya OpenAI, Anthropic, atau Gemini
     client = set_provider(provider)
-
-    # Pastikan prompt_laws dan prompt_engineering sudah didefinisikan
-    prompt_laws = "Informasi hukum terkait..."  # Sesuaikan ini dengan konteks
-    prompt_engineering = "Informasi teknik terkait..."  # Sesuaikan ini dengan konteks
-    role = "Laws"  # Tentukan role yang sesuai, bisa "Laws" atau "Engineer"
-
-    if client:
-        response = get_response(provider, client, prompt, role, vector_store=None, prompt_laws=prompt_laws, prompt_engineering=prompt_engineering)
-    else:
-        response = "Provider belum diatur."
+    response = get_response(provider, client, prompt) if client else "Provider belum diatur."
 
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
