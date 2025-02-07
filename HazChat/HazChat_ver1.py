@@ -29,6 +29,8 @@ def read_docx(file_path):
 
 # Fungsi load data dari folder yang benar
 def load_knowledge(role):
+    if role == "Initial":
+        return ""  # Skip loading for 'Initial' role
     role_folders = {"Laws": "regulation", "Engineer": "engineering"}
 
     # Pastikan path utama ke folder `data`
@@ -64,15 +66,19 @@ def load_knowledge(role):
     return combined_text
 
 # Streamlit UI
-st.title("HazChat")
-role = st.selectbox("Pilih Role", ["Laws", "Engineer"])
+st.title("HazChat (Hazmi Chat)")
+role = st.selectbox("Pilih Role", ["Initial", "Laws", "Engineer"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini", "DeepSeek", "Llama"])
 
 # Load Knowledge Base
 knowledge_base = load_knowledge(role)
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-chunks = text_splitter.split_text(knowledge_base)
-st.write(f"Jumlah chunks: {len(chunks)}")
+if knowledge_base:
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    chunks = text_splitter.split_text(knowledge_base)
+    st.write(f"Jumlah chunks: {len(chunks)}")
+else:
+    st.warning("Knowledge base kosong atau role 'Initial' dipilih.")
+    vector_store = None
 
 # Embedding & FAISS
 embeddings = OpenAIEmbeddings()
@@ -97,14 +103,13 @@ def set_provider(provider):
 
 # Fungsi untuk mendapatkan respons
 def get_response(provider, client, prompt):
-    if not vector_store:
-        return "Knowledge base kosong."
-
-    retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
-    relevant_docs = retriever.get_relevant_documents(prompt)
-    context = "\n".join([doc.page_content for doc in relevant_docs])
-
-    augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\nPertanyaan: {prompt}"
+    if vector_store:
+        retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+        relevant_docs = retriever.get_relevant_documents(prompt)
+        context = "\n".join([doc.page_content for doc in relevant_docs])
+        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{context}\n\nPertanyaan: {prompt}"
+    else:
+        augmented_prompt = prompt  # Use the prompt directly if no knowledge base
 
     try:
         if provider == "OpenAI":
