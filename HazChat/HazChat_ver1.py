@@ -1,69 +1,45 @@
 import os
 import streamlit as st
+import pickle
 from openai import OpenAI
 import google.generativeai as genai
 import anthropic
-import fitz  # PyMuPDF untuk PDF
-from docx import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import OpenAIEmbeddings
 
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-# Fungsi untuk memuat prompt dari folder add_prompt
-def load_prompts():
-    prompt_dir = os.path.join(os.getcwd(), "add_prompt")
-    
-    prompt_engineering_path = os.path.join(prompt_dir, "prompt_engineering.txt")
-    prompt_laws_path = os.path.join(prompt_dir, "prompt_laws.txt")
-    
-    prompt_engineering = open(prompt_engineering_path, "r", encoding="utf-8").read() if os.path.exists(prompt_engineering_path) else None
-    prompt_laws = open(prompt_laws_path, "r", encoding="utf-8").read() if os.path.exists(prompt_laws_path) else None
-    
-    return prompt_engineering, prompt_laws
+# Fungsi untuk memuat FAISS yang sudah ada
+def load_faiss(role):
+    file_path = f"faiss_{role}.pkl"
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            return pickle.load(f)
+    else:
+        return None
 
-# Memuat prompt
-prompt_engineering, prompt_laws = load_prompts()
+# Fungsi untuk menjalankan precompute_embeddings.py
+def run_precompute_embeddings():
+    os.system("python precompute_embeddings.py")
+    st.success("✅ Embedding selesai! Silakan refresh halaman.")
 
-# Fungsi membaca PDF
-def read_pdf(file_path):
-    text = ""
-    with fitz.open(file_path) as pdf:
-        for page in pdf:
-            text += page.get_text() + "\n"
-    return text
+# Streamlit UI
+st.title("HazChat")
+role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
+provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
-# Fungsi membaca DOCX
-def read_docx(file_path):
-    doc = Document(file_path)
-    return "\n".join([para.text for para in doc.paragraphs])
+# **Tombol untuk melakukan embedding ulang**
+if st.button("🔄 Jalankan Embedding (Jika Ada Data Baru)"):
+    run_precompute_embeddings()
 
-# Fungsi load data dari folder yang benar
-def load_knowledge(role):
-    role_folders = {"Laws": "regulation", "Engineering": "engineering"}
-    BASE_DIR = os.getcwd()
-    data_folder = os.path.join(BASE_DIR, "data", role_folders.get(role, "data"))
-    
-    combined_text = ""
-    if not os.path.exists(data_folder):
-        st.warning(f"⚠️ Folder {data_folder} tidak ditemukan.")
-        return ""
-    
-    for file_name in os.listdir(data_folder):
-        file_path = os.path.join(data_folder, file_name)
-        if not os.path.isfile(file_path):
-            continue
-        
-        if file_name.endswith(".pdf"):
-            combined_text += read_pdf(file_path) + "\n"
-        elif file_name.endswith(".docx"):
-            combined_text += read_docx(file_path) + "\n"
-    
-    return combined_text
+# Load FAISS
+vector_store = load_faiss(role)
+if vector_store:
+    st.success(f"✅ Knowledge base untuk {role} berhasil dimuat!")
+else:
+    st.warning(f"⚠️ Tidak ada knowledge base untuk {role}. Klik tombol di atas untuk membuat embedding.")
 
 # Fungsi untuk memilih provider
 def set_provider(provider):
@@ -77,21 +53,16 @@ def set_provider(provider):
     return None
 
 # Fungsi untuk mendapatkan respons
-def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
+def get_response(provider, client, prompt, role, vector_store):
     if not vector_store:
-        return "Knowledge base kosong."
-    
+        return "Knowledge base kosong. Silakan buat embedding dulu."
+
     retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
     relevant_docs = retriever.get_relevant_documents(prompt)
     context = "\n".join([doc.page_content for doc in relevant_docs])
-    
-    if role == "Laws":
-        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
-    elif role == "Engineering":
-        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_engineering}\n\n{context}\n\nPertanyaan: {prompt}"
-    else:
-        return "Peran tidak dikenali."
-    
+
+    augmented_prompt = f"Gunakan informasi berikut:\n{context}\n\nPertanyaan: {prompt}"
+
     try:
         if provider == "OpenAI":
             response = client.chat.completions.create(
@@ -113,38 +84,11 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}"
 
-# Streamlit UI
-st.title("HazChat")
-role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
-provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
-
-# Load Knowledge Base
-knowledge_base = load_knowledge(role)
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-chunks = text_splitter.split_text(knowledge_base)
-st.write(f"Jumlah chunks: {len(chunks)}")
-
-# Embedding & FAISS
-embeddings = OpenAIEmbeddings()
-vector_store = FAISS.from_texts(chunks, embedding=embeddings) if chunks else None
-
-# Chat History
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
+# Chat Input
 prompt = st.chat_input("Masukkan prompt...")
 if prompt:
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    
     client = set_provider(provider)
-    response = get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering) if client else "Provider belum diatur."
+    response = get_response(provider, client, prompt, role, vector_store) if client else "Provider belum diatur."
     
-    st.session_state.messages.append({"role": "assistant", "content": response})
-    with st.chat_message("assistant"):
-        st.markdown(response)
+    st.chat_message("user").markdown(prompt)
+    st.chat_message("assistant").markdown(response)
