@@ -215,25 +215,39 @@ for message in st.session_state.messages:
 # Input Prompt
 prompt = st.chat_input("Masukkan prompt...")
 
+# if prompt:
+#     st.session_state.messages.append({"role": "user", "content": prompt})
+#     with st.chat_message("user"):
+#         st.markdown(prompt)
+
+#     # Menetapkan provider yang digunakan
+#     provider = "OpenAI"  # Tentukan provider yang diinginkan, misalnya OpenAI, Anthropic, atau Gemini
+#     client = set_provider(provider)
+
+#     # Pastikan prompt_laws dan prompt_engineering sudah didefinisikan
+#     prompt_laws = "Informasi hukum terkait..."  # Sesuaikan ini dengan konteks
+#     prompt_engineering = "Informasi teknik terkait..."  # Sesuaikan ini dengan konteks
+#     role = "Laws"  # Tentukan role yang sesuai, bisa "Laws" atau "Engineer"
+
+#     if client:
+#         response = get_response(provider, client, prompt, role, vector_store=None, prompt_laws=prompt_laws, prompt_engineering=prompt_engineering)
+#     else:
+#         response = "Provider belum diatur."
+
+#     st.session_state.messages.append({"role": "assistant", "content": response})
+#     with st.chat_message("assistant"):
+#         st.markdown(response)
+
+
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Menetapkan provider yang digunakan
-    provider = "OpenAI"  # Tentukan provider yang diinginkan, misalnya OpenAI, Anthropic, atau Gemini
     client = set_provider(provider)
-
-    # Pastikan prompt_laws dan prompt_engineering sudah didefinisikan
-    prompt_laws = "Informasi hukum terkait..."  # Sesuaikan ini dengan konteks
-    prompt_engineering = "Informasi teknik terkait..."  # Sesuaikan ini dengan konteks
-    role = "Laws"  # Tentukan role yang sesuai, bisa "Laws" atau "Engineer"
-
-    if client:
-        response = get_response(provider, client, prompt, role, vector_store=None, prompt_laws=prompt_laws, prompt_engineering=prompt_engineering)
-    else:
-        response = "Provider belum diatur."
+    response = get_response(provider, client, prompt) if client else "Provider belum diatur."
 
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
         st.markdown(response)
+
