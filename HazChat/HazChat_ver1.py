@@ -86,12 +86,15 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         return "Peran tidak dikenali."
 
     try:
+        token_usage = 0  # Default token usage
+
         if provider == "OpenAI":
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": augmented_prompt}]
             )
-            return response.choices[0].message.content
+            token_usage = response.usage.total_tokens  # OpenAI API memberikan jumlah token
+            return response.choices[0].message.content, token_usage
         elif provider == "Anthropic":
             response = client.messages.create(
                 model="claude-2",
@@ -121,8 +124,9 @@ if prompt:
         st.markdown(prompt)
     
     client = set_provider(provider)
-    response = get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering) if client else "Provider belum diatur."
+    response, token_usage = get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering) if client else "Provider belum diatur."
     
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
         st.markdown(response)
+        st.info(f"📊 Token digunakan: **{token_usage}**")
