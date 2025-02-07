@@ -27,13 +27,13 @@ def load_faiss(role):
         return None
 
 # Fungsi untuk menjalankan precompute_embeddings.py
-def run_precompute_embeddings():
-    try:
-        # Menjalankan skrip precompute_embeddings.py menggunakan subprocess
-        result = subprocess.run(["python", "precompute_embeddings.py"], check=True, capture_output=True, text=True)
-        st.success("✅ Embedding selesai!")
-        st.write(f"Output: {result.stdout}")
-    except Exception as e:
+# def run_precompute_embeddings():
+#     try:
+#         # Menjalankan skrip precompute_embeddings.py menggunakan subprocess
+#         result = subprocess.run(["python", "precompute_embeddings.py"], check=True, capture_output=True, text=True)
+#         st.success("✅ Embedding selesai!")
+#         st.write(f"Output: {result.stdout}")
+#     except Exception as e:
         # Menangani kesalahan jika ada masalah saat menjalankan skrip
         st.error(f"❌ Terjadi kesalahan saat menjalankan precompute_embeddings.py: {str(e)}")
         if e.stdout:
@@ -41,6 +41,7 @@ def run_precompute_embeddings():
         if e.stderr:
             st.write(f"stderr: {e.stderr}")
 
+            
 # Fungsi memuat prompt dari file
 def load_prompts():
     prompt_dir = os.path.join(os.getcwd(), "add_prompt")
@@ -62,8 +63,8 @@ role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
 # **Tombol untuk melakukan embedding ulang**
-if st.button("🔄 Jalankan Embedding"):
-    run_precompute_embeddings()
+# if st.button("🔄 Jalankan Embedding"):
+#     run_precompute_embeddings()
 
 # Load FAISS
 vector_store = load_faiss(role)
