@@ -115,7 +115,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         context = "\n".join([doc.page_content for doc in relevant_docs])
     else:
         context = ""
-
+    st.write(context)
     # Jika FAISS tidak ada, hanya gunakan prompt default
     if role == "Laws":
         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
@@ -147,9 +147,6 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
             return response.text, token_usage
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}", 0
-
-# Menampilkan st.session_state.vector_store
-st.write(st.session_state.vector_store)
 
 # Chat History
 if "messages" not in st.session_state:
