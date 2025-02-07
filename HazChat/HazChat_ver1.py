@@ -78,7 +78,7 @@ prompt_engineering, prompt_laws = load_prompts()
 
 # Streamlit UI
 st.title("HazChat ")
-st.header('Hazmi Chatbot 😎')
+st.subheader('Hazmi Chatbot 😎')
 role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
