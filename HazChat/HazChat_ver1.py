@@ -76,18 +76,23 @@ if knowledge_base:
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = text_splitter.split_text(knowledge_base)
     st.write(f"Jumlah chunks: {len(chunks)}")
+    embeddings = OpenAIEmbeddings()
+
+    if chunks:
+        vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+    else:
+        st.warning("Data untuk role ini kosong.")
+        vector_store = None
+
 else:
     st.warning("Knowledge base kosong atau role 'Initial' dipilih.")
     vector_store = None
 
 # Embedding & FAISS
-embeddings = OpenAIEmbeddings()
+# embeddings = OpenAIEmbeddings()
 
-if chunks:
-    vector_store = FAISS.from_texts(chunks, embedding=embeddings)
-else:
-    st.warning("Data untuk role ini kosong.")
-    vector_store = None
+# if chunks:
+#     vector_store = FAISS.from_texts(chunks, embedding=embeddings)
 
 # Fungsi untuk set provider
 def set_provider(provider):
