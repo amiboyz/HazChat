@@ -54,8 +54,7 @@ def load_knowledge(role):
             combined_text += read_docx(file_path) + "\n"
     
     return combined_text
-
-           
+          
 # Fungsi memuat prompt dari file
 def load_prompts():
     prompt_dir = os.path.join(os.getcwd(), "add_prompt")
@@ -130,7 +129,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
 
         if provider == "OpenAI":
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 messages=[{"role": "user", "content": augmented_prompt}]
             )
             token_usage = response.usage.total_tokens  # OpenAI API memberikan jumlah token
@@ -148,7 +147,10 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
             return response.text, token_usage
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}", 0
-    
+
+# Menampilkan st.session_state.vector_store
+st.write(st.session_state.vector_store)
+
 # Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
