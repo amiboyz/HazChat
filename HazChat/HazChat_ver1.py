@@ -8,6 +8,7 @@ import fitz
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OpenAIEmbeddings
+import tiktoken
 
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
@@ -67,11 +68,17 @@ def load_prompts():
 
     return prompt_engineering, prompt_laws
 
+#  Buat Fungsi untuk Menghitung Token
+def count_tokens(text, model="text-embedding-ada-002"):
+    encoding = tiktoken.encoding_for_model(model)
+    return len(encoding.encode(text))
+
 # Memuat prompt
 prompt_engineering, prompt_laws = load_prompts()
 
 # Streamlit UI
-st.title("HazChat (Hazmi Chatbot keren)")
+st.title("HazChat ")
+st.header('Hazmi Chatbot 😎')
 role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
@@ -82,7 +89,9 @@ if st.button("🔄 Jalankan Embedding"):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = text_splitter.split_text(knowledge_base)
     st.write(f"Jumlah chunks: {len(chunks)}")
-    
+    # Hitung total token dari semua chunks
+    total_tokens = sum(count_tokens(chunk) for chunk in chunks)
+    st.write(f"Total token yang digunakan: **{total_tokens}**")
     # Embedding & FAISS
     embeddings = OpenAIEmbeddings()
     st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
@@ -165,5 +174,5 @@ if prompt:
     with st.chat_message("assistant"):
         st.markdown(response)
         if provider == "OpenAI":
-            st.write(f"📊 Token digunakan: **{token_usage}**")
+            st.markdown(f"📊 Token digunakan: **{token_usage}**")
         
