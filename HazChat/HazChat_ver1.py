@@ -83,7 +83,7 @@ provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
 
 # **Tombol untuk melakukan embedding ulang**
-if st.button("🔄 Jalankan Embedding"):
+if st.toggle("🔄 Run Embedding"):
     knowledge_base = load_knowledge(role)
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = text_splitter.split_text(knowledge_base)
@@ -115,6 +115,11 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         context = "\n".join([doc.page_content for doc in relevant_docs])
     else:
         context = ""
+    st.write('retriever')
+    st.write(retriever)
+    st.write('relevant_docs')
+    st.write(relevant_docs)
+    st.write('context')
     st.write(context)
     # Jika FAISS tidak ada, hanya gunakan prompt default
     if role == "Laws":
