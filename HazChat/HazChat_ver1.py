@@ -83,7 +83,7 @@ provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
 
 # **Tombol untuk melakukan embedding ulang**
-if st.toggle("🔄 Run Embedding"):
+if st.button("🔄 Run Embedding"):
     knowledge_base = load_knowledge(role)
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = text_splitter.split_text(knowledge_base)
