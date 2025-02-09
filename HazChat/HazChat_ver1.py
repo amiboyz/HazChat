@@ -1,6 +1,5 @@
 import os
 import streamlit as st
-import pickle
 from openai import OpenAI
 import google.generativeai as genai
 import anthropic
@@ -13,11 +12,24 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 
-
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+# Fungsi untuk memuat FAISS index
+def load_faiss_index(role, path="faiss_index"):
+    # Tentukan path lengkap untuk index berdasarkan role
+    faiss_index_path = os.path.join(path, f"faiss/{role}_faiss.index")
+    
+    # Memuat FAISS index jika file ada
+    if os.path.exists(faiss_index_path):
+        vector_store = FAISS.load_local(faiss_index_path)
+        st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
+        return vector_store
+    else:
+        st.write(f"⚠️ FAISS index untuk role {role} tidak ditemukan.")
+        return None
+    
 
 # Menghubungkan ke Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
@@ -54,9 +66,7 @@ def save_to_google_sheets(prompt, context):
     # Update data ke Google Sheets
     conn.update(worksheet="Context", data=update_df)
 
-# Inisialisasi vector_store di awal
-if "vector_store" not in st.session_state:
-    st.session_state.vector_store = None
+
 
 # Fungsi membaca PDF
 def read_pdf(file_path):
@@ -106,11 +116,6 @@ def load_prompts():
 
     return prompt_engineering, prompt_laws
 
-#  Buat Fungsi untuk Menghitung Token
-def count_tokens(text, model="text-embedding-ada-002"):
-    encoding = tiktoken.encoding_for_model(model)
-    return len(encoding.encode(text))
-
 # Memuat prompt
 prompt_engineering, prompt_laws = load_prompts()
 
@@ -119,7 +124,16 @@ st.title("HazChat ")
 st.markdown('Hazmi Chatbot 😎')
 role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
-
+# Memuat FAISS index untuk role yang ditentukan
+vector_store = load_faiss_index(role)
+# Menyimpan vector_store ke session state agar dapat digunakan dalam aplikasi Streamlit
+if vector_store:
+    st.session_state.vector_store = vector_store
+else:
+    st.session_state.vector_store = None
+# # Inisialisasi vector_store di awal
+# if "vector_store" not in st.session_state:
+#     st.session_state.vector_store = None
 
 # **Tombol untuk melakukan embedding ulang**
 if st.button("🔄 Run Embedding"):
@@ -127,11 +141,9 @@ if st.button("🔄 Run Embedding"):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = text_splitter.split_text(knowledge_base)
     st.write(f"Jumlah chunks: {len(chunks)}")
-    # Hitung total token dari semua chunks
-    total_tokens = sum(count_tokens(chunk) for chunk in chunks)
-    st.write(f"Total token yang digunakan: **{total_tokens}**")
     # Embedding & FAISS
     embeddings = OpenAIEmbeddings()
+    
     st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
 
 # Fungsi untuk memilih provider
@@ -192,7 +204,6 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
             return response.text, token_usage
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}", 0
-
 
 # Chat History
 if "messages" not in st.session_state:
