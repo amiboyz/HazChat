@@ -26,7 +26,7 @@ url= "https://docs.google.com/spreadsheets/d/1ExUJipwO1bF6utXOV3dpVwfMm7ZIjAJ2LL
 # Fungsi untuk mengambil data dari Google Sheets
 def fetch_existing_data(url):
     # Mengambil data dari Google Sheets (Data sheet)
-    existing_data = conn.read(spreadsheet=url, worksheet="0", usecols=list(range(5)), ttl=5)
+    existing_data = conn.read(spreadsheet=url, worksheet="0", usecols=list(range(4)))
     existing_data = existing_data.dropna(how="all")
     return existing_data
 
