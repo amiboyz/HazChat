@@ -28,7 +28,7 @@ def load_faiss_index(role, base_path="faiss"):
     if os.path.exists(faiss_index_path):
         try:
             # Memuat FAISS index menggunakan FAISS.load_local() dari langchain
-            vector_store = FAISS.load_local(faiss_index_path)
+            vector_store = FAISS.load_local(f'{faiss_index_path}/index.faiss)
             st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
             return vector_store
         except Exception as e:
