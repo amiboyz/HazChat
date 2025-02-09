@@ -9,11 +9,29 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OpenAIEmbeddings
 import tiktoken
+import json
 
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+
+# Path untuk menyimpan knowledge base tambahan
+BASE_KNOWLEDGE_PATH = "base_knowledge.json"
+# Fungsi untuk membaca base knowledge
+def load_base_knowledge():
+    if os.path.exists(BASE_KNOWLEDGE_PATH):
+        with open(BASE_KNOWLEDGE_PATH, "r", encoding="utf-8") as file:
+            return json.load(file)
+    return {}
+
+# Fungsi untuk menyimpan base knowledge
+def save_base_knowledge(knowledge_data):
+    with open(BASE_KNOWLEDGE_PATH, "w", encoding="utf-8") as file:
+        json.dump(knowledge_data, file, indent=4, ensure_ascii=False)
+
+# Load base knowledge saat aplikasi dimulai
+st.session_state.base_knowledge = load_base_knowledge()
 
 # Inisialisasi vector_store di awal
 if "vector_store" not in st.session_state:
@@ -107,37 +125,87 @@ def set_provider(provider):
     return None
 
 # Fungsi untuk mendapatkan respons
+# def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
+#     # Jika FAISS tersedia, gunakan retrieval
+#     if vector_store is not None:
+#         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+#         relevant_docs = retriever.get_relevant_documents(prompt)
+#         context = "\n".join([doc.page_content for doc in relevant_docs])
+#         st.write('retriever')
+#         st.write(retriever)
+#         st.write('relevant_docs')
+#         st.write(relevant_docs)
+#         st.write('context')
+#         st.write(context)
+#     else:
+#         context = ""
+#     # Jika FAISS tidak ada, hanya gunakan prompt default
+#     if role == "Laws":
+#         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
+#     elif role == "Engineering":
+#         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_engineering}\n\n{context}\n\nPertanyaan: {prompt}"
+#     else:
+#         return "Peran tidak dikenali.", 0  # Kembalikan token_usage default
+
+#     try:
+#         token_usage = 0  # Default token usage
+
+#         if provider == "OpenAI":
+#             response = client.chat.completions.create(
+#                 model="gpt-4o-mini",
+#                 messages=[{"role": "user", "content": augmented_prompt}]
+#             )
+#             token_usage = response.usage.total_tokens  # OpenAI API memberikan jumlah token
+#             return response.choices[0].message.content, token_usage
+#         elif provider == "Anthropic":
+#             response = client.messages.create(
+#                 model="claude-2",
+#                 max_tokens=1024,
+#                 messages=[{"role": "user", "content": augmented_prompt}]
+#             )
+#             return response.content, token_usage
+#         elif provider == "Gemini":
+#             model = client.GenerativeModel("gemini-pro")
+#             response = model.generate_content(augmented_prompt)
+#             return response.text, token_usage
+#     except Exception as e:
+#         return f"Terjadi kesalahan: {str(e)}", 0
 def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
-    # Jika FAISS tersedia, gunakan retrieval
-    if vector_store is not None:
-        retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
-        relevant_docs = retriever.get_relevant_documents(prompt)
-        context = "\n".join([doc.page_content for doc in relevant_docs])
-        st.write('retriever')
-        st.write(retriever)
-        st.write('relevant_docs')
-        st.write(relevant_docs)
-        st.write('context')
-        st.write(context)
+    # Cek apakah pertanyaan sudah ada dalam base knowledge
+    base_knowledge = st.session_state.base_knowledge
+    if prompt in base_knowledge:
+        st.write("⚡ Menggunakan konteks dari base knowledge cache")
+        context = base_knowledge[prompt]
     else:
-        context = ""
-    # Jika FAISS tidak ada, hanya gunakan prompt default
+        # Jika belum ada, gunakan FAISS untuk mendapatkan konteks
+        if vector_store is not None:
+            retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+            relevant_docs = retriever.get_relevant_documents(prompt)
+            context = "\n".join([doc.page_content for doc in relevant_docs])
+            
+            # Simpan hasil retrieval ke base knowledge
+            base_knowledge[prompt] = context
+            save_base_knowledge(base_knowledge)
+        else:
+            context = ""
+
+    # Buat prompt augmented
     if role == "Laws":
         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
     elif role == "Engineering":
         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_engineering}\n\n{context}\n\nPertanyaan: {prompt}"
     else:
-        return "Peran tidak dikenali.", 0  # Kembalikan token_usage default
+        return "Peran tidak dikenali.", 0  
 
     try:
-        token_usage = 0  # Default token usage
+        token_usage = 0 
 
         if provider == "OpenAI":
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": augmented_prompt}]
             )
-            token_usage = response.usage.total_tokens  # OpenAI API memberikan jumlah token
+            token_usage = response.usage.total_tokens  
             return response.choices[0].message.content, token_usage
         elif provider == "Anthropic":
             response = client.messages.create(
