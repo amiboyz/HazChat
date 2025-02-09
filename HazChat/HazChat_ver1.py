@@ -23,12 +23,14 @@ def load_faiss_index(role, base_path="faiss"):
     # Tentukan path untuk folder index berdasarkan role
     faiss_index_folder = f"{role}_faiss.index"  # Misalnya 'Engineering_faiss.index'
     faiss_index_path = os.path.join(base_path, faiss_index_folder)  # Path ke folder index
-    st.write(faiss_index_path)
+
+    st.write(faiss_index_path)  # Menampilkan path untuk debugging
+
     # Memuat FAISS index jika folder ada
     if os.path.exists(faiss_index_path):
         try:
             # Memuat FAISS index menggunakan FAISS.load_local() dari langchain
-            vector_store = FAISS.load_local(f'{faiss_index_path}/index.faiss')
+            vector_store = FAISS.load_local(faiss_index_path)  # Berikan path ke folder, bukan file
             st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
             return vector_store
         except Exception as e:
@@ -37,6 +39,7 @@ def load_faiss_index(role, base_path="faiss"):
     else:
         st.write(f"⚠️ FAISS index untuk role {role} tidak ditemukan di {faiss_index_path}.")
         return None
+
 
     
 
