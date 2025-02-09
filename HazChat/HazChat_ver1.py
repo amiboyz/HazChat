@@ -19,6 +19,7 @@ GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 # Fungsi untuk memuat FAISS index
 
 # Fungsi untuk memuat FAISS index menggunakan FAISS.load_local()
+# Fungsi untuk memuat FAISS index dengan embeddings
 def load_faiss_index(role, base_path="faiss"):
     # Tentukan path untuk folder index berdasarkan role
     faiss_index_folder = f"{role}_faiss.index"  # Misalnya 'Engineering_faiss.index'
@@ -29,8 +30,12 @@ def load_faiss_index(role, base_path="faiss"):
     # Memuat FAISS index jika folder ada
     if os.path.exists(faiss_index_path):
         try:
-            # Memuat FAISS index menggunakan FAISS.load_local() dari langchain
-            vector_store = FAISS.load_local(faiss_index_path)  # Berikan path ke folder, bukan file
+            # Membuat instance embeddings
+            embeddings = OpenAIEmbeddings()
+
+            # Memuat FAISS index menggunakan FAISS.load_local() dan memberikan embeddings
+            vector_store = FAISS.load_local(faiss_index_path, embeddings)
+            
             st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
             return vector_store
         except Exception as e:
