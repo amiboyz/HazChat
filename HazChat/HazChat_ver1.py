@@ -45,10 +45,7 @@ def load_faiss_index(role, base_path="faiss"):
     else:
         st.write(f"⚠️ FAISS index untuk role {role} tidak ditemukan di {faiss_index_path}.")
         return None
-
-
-    
-
+ 
 # Menghubungkan ke Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 
@@ -56,6 +53,12 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 def fetch_existing_data():
     # Mengambil data dari Google Sheets (Data sheet)
     existing_data = conn.read(worksheet="Context", usecols=list(range(4)),ttl=5)
+    existing_data = existing_data.dropna(how="all")
+    return existing_data
+
+def fetch_existing_dataQnA():
+    # Mengambil data dari Google Sheets (Data sheet)
+    existing_data = conn.read(worksheet="QnA", usecols=list(range(5)),ttl=5)
     existing_data = existing_data.dropna(how="all")
     return existing_data
 
@@ -84,8 +87,31 @@ def save_to_google_sheets(prompt, context):
     # Update data ke Google Sheets
     conn.update(worksheet="Context", data=update_df)
 
-
-
+def save_to_google_sheetsQnA(prompt, response):
+    # Mendapatkan tanggal dan jam akses
+    tanggal_akses = datetime.now().strftime("%Y-%m-%d")
+    jam_akses = datetime.now().strftime("%H:%M:%S")
+    
+    # Membuat data baru yang akan disimpan ke Google Sheets
+    user_data = pd.DataFrame(
+        [
+            {
+                "Pertanyaan": prompt,
+                "Jawaban": response,
+                "Role": role,
+                "Tanggal_Akses": tanggal_akses,
+                "Jam_Akses": jam_akses,
+            }
+        ]
+    )
+    # Ambil data yang sudah ada
+    existing_data = fetch_existing_dataQnA()
+    
+    # Gabungkan data lama dengan data baru
+    update_df = pd.concat([existing_data, user_data], ignore_index=True)
+    
+    # Update data ke Google Sheets
+    conn.update(worksheet="Context", data=update_df)
 # Fungsi membaca PDF
 def read_pdf(file_path):
     text = ""
@@ -154,15 +180,15 @@ else:
 #     st.session_state.vector_store = None
 
 # **Tombol untuk melakukan embedding ulang**
-if st.button("🔄 Run Embedding"):
-    knowledge_base = load_knowledge(role)
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    chunks = text_splitter.split_text(knowledge_base)
-    st.write(f"Jumlah chunks: {len(chunks)}")
-    # Embedding & FAISS
-    embeddings = OpenAIEmbeddings()
+# if st.button("🔄 Run Embedding"):
+#     knowledge_base = load_knowledge(role)
+#     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+#     chunks = text_splitter.split_text(knowledge_base)
+#     st.write(f"Jumlah chunks: {len(chunks)}")
+#     # Embedding & FAISS
+#     embeddings = OpenAIEmbeddings()
     
-    st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+#     st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
 
 # Fungsi untuk memilih provider
 def set_provider(provider):
@@ -240,6 +266,7 @@ if prompt:
     client = set_provider(provider)
     if client:
         response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
+        save_to_google_sheetsQnA(prompt, response)
     else:
         response = "Provider belum diatur."
         token_usage = 0
