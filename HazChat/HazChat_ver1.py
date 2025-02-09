@@ -24,7 +24,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 # Fungsi untuk mengambil data dari Google Sheets
 def fetch_existing_data():
     # Mengambil data dari Google Sheets (Data sheet)
-    existing_data = conn.read(worksheet="Data", usecols=list(range(5)), ttl=5)
+    existing_data = conn.read(worksheet="Context", usecols=list(range(5)), ttl=5)
     existing_data = existing_data.dropna(how="all")
     return existing_data
 
