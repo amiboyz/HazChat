@@ -26,10 +26,10 @@ def load_faiss_index(role, base_path="faiss"):
     if os.path.exists(faiss_index_path):
         # Memuat FAISS index dari folder (index.faiss dan index.pkl)
         vector_store = FAISS.load_local(faiss_index_path)
-        print(f"✅ FAISS index untuk role {role} berhasil dimuat!")
+        st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
         return vector_store
     else:
-        print(f"⚠️ FAISS index untuk role {role} tidak ditemukan.")
+        st.write(f"⚠️ FAISS index untuk role {role} tidak ditemukan.")
         return None
     
 
