@@ -13,6 +13,7 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 
+
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
@@ -24,7 +25,8 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 # Fungsi untuk mengambil data dari Google Sheets
 def fetch_existing_data():
     # Mengambil data dari Google Sheets (Data sheet)
-    existing_data = conn.read(worksheet="Context", usecols=list(range(5)), ttl=5)
+    url= "https://docs.google.com/spreadsheets/d/1ExUJipwO1bF6utXOV3dpVwfMm7ZIjAJ2LLAmCCozwQ8/edit?usp=sharing"
+    existing_data = conn.read(spreadsheet=url, worksheet="Context", usecols=list(range(5)), ttl=5)
     existing_data = existing_data.dropna(how="all")
     return existing_data
 
@@ -51,8 +53,7 @@ def save_to_google_sheets(prompt, context):
     update_df = pd.concat([existing_data, user_data], ignore_index=True)
     
     # Update data ke Google Sheets
-    conn.update(worksheet="Context", data=update_df)
-
+    conn.update(spreadsheet=url, worksheet="Context", data=update_df)
 
 # Inisialisasi vector_store di awal
 if "vector_store" not in st.session_state:
@@ -210,7 +211,7 @@ if prompt:
     
     client = set_provider(provider)
     if client:
-        response, token_usage, context = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
+        response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
     else:
         response = "Provider belum diatur."
         token_usage = 0
