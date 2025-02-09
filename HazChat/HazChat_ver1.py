@@ -111,7 +111,7 @@ def save_to_google_sheetsQnA(prompt, response):
     update_df = pd.concat([existing_data, user_data], ignore_index=True)
     
     # Update data ke Google Sheets
-    conn.update(worksheet="Context", data=update_df)
+    conn.update(worksheet="QnA", data=update_df)
 # Fungsi membaca PDF
 def read_pdf(file_path):
     text = ""
