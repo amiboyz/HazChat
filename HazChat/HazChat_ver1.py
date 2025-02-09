@@ -18,14 +18,18 @@ ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 # Fungsi untuk memuat FAISS index
 def load_faiss_index(role, base_path="faiss"):
-    # Tentukan path untuk index berdasarkan role
-    faiss_index_folder = f"{role}_faiss.index"
-    faiss_index_path = os.path.join(base_path, faiss_index_folder)
+    # Tentukan path untuk folder index berdasarkan role
+    faiss_index_folder = f"{role}_faiss.index"  # Nama folder untuk role (misalnya: 'Engineering_faiss.index')
+    faiss_index_path = os.path.join(base_path, faiss_index_folder, "index.faiss")  # Path ke file index.faiss
     
-    # Memuat FAISS index jika folder dan file ada
+    # Memuat FAISS index jika file ada
     if os.path.exists(faiss_index_path):
-        # Memuat FAISS index dari folder (index.faiss dan index.pkl)
-        vector_store = FAISS.load_local(faiss_index_path)
+        # Membaca FAISS index menggunakan faiss.read_index
+        index = faiss.read_index(faiss_index_path)
+        
+        # Membuat objek FAISS menggunakan index yang sudah dimuat
+        vector_store = FAISS(index=index)
+        
         st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
         return vector_store
     else:
