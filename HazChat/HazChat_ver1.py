@@ -11,7 +11,7 @@ from langchain_community.embeddings import OpenAIEmbeddings
 import tiktoken
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
-import datetime
+from datetime import datetime
 
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
