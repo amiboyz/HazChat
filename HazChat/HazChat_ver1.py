@@ -21,16 +21,16 @@ GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 # Menghubungkan ke Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
+url= "https://docs.google.com/spreadsheets/d/1ExUJipwO1bF6utXOV3dpVwfMm7ZIjAJ2LLAmCCozwQ8/edit?usp=sharing"
 
 # Fungsi untuk mengambil data dari Google Sheets
-def fetch_existing_data():
+def fetch_existing_data(url):
     # Mengambil data dari Google Sheets (Data sheet)
-    url= "https://docs.google.com/spreadsheets/d/1ExUJipwO1bF6utXOV3dpVwfMm7ZIjAJ2LLAmCCozwQ8/edit?usp=sharing"
-    existing_data = conn.read(spreadsheet=url, worksheet="Context", usecols=list(range(5)), ttl=5)
+    existing_data = conn.read(spreadsheet=url, worksheet="0", usecols=list(range(5)), ttl=5)
     existing_data = existing_data.dropna(how="all")
     return existing_data
 
-def save_to_google_sheets(prompt, context):
+def save_to_google_sheets(prompt, context, url):
     # Mendapatkan tanggal dan jam akses
     tanggal_akses = datetime.now().strftime("%Y-%m-%d")
     jam_akses = datetime.now().strftime("%H:%M:%S")
@@ -40,20 +40,20 @@ def save_to_google_sheets(prompt, context):
         [
             {
                 "Pertanyaan": prompt,
-                "context from embeded": context,
+                "build_context": context,
                 "Tanggal_Akses": tanggal_akses,
                 "Jam_Akses": jam_akses,
             }
         ]
     )
     # Ambil data yang sudah ada
-    existing_data = fetch_existing_data()
+    existing_data = fetch_existing_data(url)
     
     # Gabungkan data lama dengan data baru
     update_df = pd.concat([existing_data, user_data], ignore_index=True)
     
     # Update data ke Google Sheets
-    conn.update(spreadsheet=url, worksheet="Context", data=update_df)
+    conn.update(spreadsheet=url, worksheet="0", data=update_df)
 
 # Inisialisasi vector_store di awal
 if "vector_store" not in st.session_state:
@@ -159,6 +159,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         # st.write(relevant_docs)
         # st.write('context')
         # st.write(context)
+        save_to_google_sheets(prompt, context, url)
     else:
         context = ""
     # Jika FAISS tidak ada, hanya gunakan prompt default
