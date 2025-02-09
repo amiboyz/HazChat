@@ -21,12 +21,11 @@ GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 # Menghubungkan ke Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
-url= "https://docs.google.com/spreadsheets/d/1ExUJipwO1bF6utXOV3dpVwfMm7ZIjAJ2LLAmCCozwQ8/edit?usp=sharing"
 
 # Fungsi untuk mengambil data dari Google Sheets
 def fetch_existing_data(url):
     # Mengambil data dari Google Sheets (Data sheet)
-    existing_data = conn.read(spreadsheet=url, worksheet="0", usecols=list(range(4)))
+    existing_data = conn.read(worksheet="Context", usecols=list(range(4)))
     existing_data = existing_data.dropna(how="all")
     return existing_data
 
@@ -53,7 +52,7 @@ def save_to_google_sheets(prompt, context, url):
     update_df = pd.concat([existing_data, user_data], ignore_index=True)
     
     # Update data ke Google Sheets
-    conn.update(spreadsheet=url, worksheet="0", data=update_df)
+    conn.update(worksheet="Context", data=update_df)
 
 # Inisialisasi vector_store di awal
 if "vector_store" not in st.session_state:
