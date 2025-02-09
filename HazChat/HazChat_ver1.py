@@ -23,13 +23,13 @@ GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # Fungsi untuk mengambil data dari Google Sheets
-def fetch_existing_data(url):
+def fetch_existing_data():
     # Mengambil data dari Google Sheets (Data sheet)
-    existing_data = conn.read(worksheet="Context", usecols=list(range(4)))
+    existing_data = conn.read(worksheet="Context", usecols=list(range(4)),ttl=5)
     existing_data = existing_data.dropna(how="all")
     return existing_data
 
-def save_to_google_sheets(prompt, context, url):
+def save_to_google_sheets(prompt, context):
     # Mendapatkan tanggal dan jam akses
     tanggal_akses = datetime.now().strftime("%Y-%m-%d")
     jam_akses = datetime.now().strftime("%H:%M:%S")
@@ -46,7 +46,7 @@ def save_to_google_sheets(prompt, context, url):
         ]
     )
     # Ambil data yang sudah ada
-    existing_data = fetch_existing_data(url)
+    existing_data = fetch_existing_data()
     
     # Gabungkan data lama dengan data baru
     update_df = pd.concat([existing_data, user_data], ignore_index=True)
@@ -158,7 +158,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         # st.write(relevant_docs)
         # st.write('context')
         # st.write(context)
-        save_to_google_sheets(prompt, context, url)
+        save_to_google_sheets(prompt, context)
     else:
         context = ""
     # Jika FAISS tidak ada, hanya gunakan prompt default
