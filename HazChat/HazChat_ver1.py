@@ -23,7 +23,7 @@ GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 # Fungsi untuk memuat FAISS index dengan embeddings
 def load_faiss_index(role, base_path="faiss"):
     # Tentukan path untuk folder index berdasarkan role
-    faiss_index_folder = f"{role}_faiss.index"  # Misalnya 'Engineering_faiss.index'
+    faiss_index_folder = f"faiss_index_{role}"  # Misalnya 'Engineering_faiss.index'
     faiss_index_path = os.path.join(base_path, faiss_index_folder)  # Path ke folder index
 
     st.write(faiss_index_path)  # Menampilkan path untuk debugging
