@@ -51,7 +51,7 @@ def save_to_google_sheets(prompt, context):
     update_df = pd.concat([existing_data, user_data], ignore_index=True)
     
     # Update data ke Google Sheets
-    conn.update(worksheet="Data", data=update_df)
+    conn.update(worksheet="Context", data=update_df)
 
 
 # Inisialisasi vector_store di awal
