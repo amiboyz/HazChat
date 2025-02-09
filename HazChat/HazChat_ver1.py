@@ -153,13 +153,12 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
         relevant_docs = retriever.get_relevant_documents(prompt)
         context = "\n".join([doc.page_content for doc in relevant_docs])
-        st.write('retriever')
-        st.write(retriever)
-        st.write('relevant_docs')
-        st.write(relevant_docs)
-        st.write('context')
-        st.write(context)
-        save_to_google_sheets(prompt, context)
+        # st.write('retriever')
+        # st.write(retriever)
+        # st.write('relevant_docs')
+        # st.write(relevant_docs)
+        # st.write('context')
+        # st.write(context)
     else:
         context = ""
     # Jika FAISS tidak ada, hanya gunakan prompt default
