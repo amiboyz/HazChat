@@ -9,29 +9,50 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OpenAIEmbeddings
 import tiktoken
-import json
+import pandas as pd
+from streamlit_gsheets import GSheetsConnection
+import datetime
 
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-# Path untuk menyimpan knowledge base tambahan
-BASE_KNOWLEDGE_PATH = "base_knowledge.json"
-# Fungsi untuk membaca base knowledge
-def load_base_knowledge():
-    if os.path.exists(BASE_KNOWLEDGE_PATH):
-        with open(BASE_KNOWLEDGE_PATH, "r", encoding="utf-8") as file:
-            return json.load(file)
-    return {}
+# Menghubungkan ke Google Sheets
+conn = st.connection("gsheets", type=GSheetsConnection)
 
-# Fungsi untuk menyimpan base knowledge
-def save_base_knowledge(knowledge_data):
-    with open(BASE_KNOWLEDGE_PATH, "w", encoding="utf-8") as file:
-        json.dump(knowledge_data, file, indent=4, ensure_ascii=False)
+# Fungsi untuk mengambil data dari Google Sheets
+def fetch_existing_data():
+    # Mengambil data dari Google Sheets (Data sheet)
+    existing_data = conn.read(worksheet="Data", usecols=list(range(5)), ttl=5)
+    existing_data = existing_data.dropna(how="all")
+    return existing_data
 
-# Load base knowledge saat aplikasi dimulai
-st.session_state.base_knowledge = load_base_knowledge()
+def save_to_google_sheets(prompt, context):
+    # Mendapatkan tanggal dan jam akses
+    tanggal_akses = datetime.now().strftime("%Y-%m-%d")
+    jam_akses = datetime.now().strftime("%H:%M:%S")
+    
+    # Membuat data baru yang akan disimpan ke Google Sheets
+    user_data = pd.DataFrame(
+        [
+            {
+                "Pertanyaan": prompt,
+                "context from embeded": context,
+                "Tanggal_Akses": tanggal_akses,
+                "Jam_Akses": jam_akses,
+            }
+        ]
+    )
+    # Ambil data yang sudah ada
+    existing_data = fetch_existing_data()
+    
+    # Gabungkan data lama dengan data baru
+    update_df = pd.concat([existing_data, user_data], ignore_index=True)
+    
+    # Update data ke Google Sheets
+    conn.update(worksheet="Data", data=update_df)
+
 
 # Inisialisasi vector_store di awal
 if "vector_store" not in st.session_state:
@@ -125,87 +146,38 @@ def set_provider(provider):
     return None
 
 # Fungsi untuk mendapatkan respons
-# def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
-#     # Jika FAISS tersedia, gunakan retrieval
-#     if vector_store is not None:
-#         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
-#         relevant_docs = retriever.get_relevant_documents(prompt)
-#         context = "\n".join([doc.page_content for doc in relevant_docs])
-#         st.write('retriever')
-#         st.write(retriever)
-#         st.write('relevant_docs')
-#         st.write(relevant_docs)
-#         st.write('context')
-#         st.write(context)
-#     else:
-#         context = ""
-#     # Jika FAISS tidak ada, hanya gunakan prompt default
-#     if role == "Laws":
-#         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
-#     elif role == "Engineering":
-#         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_engineering}\n\n{context}\n\nPertanyaan: {prompt}"
-#     else:
-#         return "Peran tidak dikenali.", 0  # Kembalikan token_usage default
-
-#     try:
-#         token_usage = 0  # Default token usage
-
-#         if provider == "OpenAI":
-#             response = client.chat.completions.create(
-#                 model="gpt-4o-mini",
-#                 messages=[{"role": "user", "content": augmented_prompt}]
-#             )
-#             token_usage = response.usage.total_tokens  # OpenAI API memberikan jumlah token
-#             return response.choices[0].message.content, token_usage
-#         elif provider == "Anthropic":
-#             response = client.messages.create(
-#                 model="claude-2",
-#                 max_tokens=1024,
-#                 messages=[{"role": "user", "content": augmented_prompt}]
-#             )
-#             return response.content, token_usage
-#         elif provider == "Gemini":
-#             model = client.GenerativeModel("gemini-pro")
-#             response = model.generate_content(augmented_prompt)
-#             return response.text, token_usage
-#     except Exception as e:
-#         return f"Terjadi kesalahan: {str(e)}", 0
 def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
-    # Cek apakah pertanyaan sudah ada dalam base knowledge
-    base_knowledge = st.session_state.base_knowledge
-    if prompt in base_knowledge:
-        st.write("⚡ Menggunakan konteks dari base knowledge cache")
-        context = base_knowledge[prompt]
+    # Jika FAISS tersedia, gunakan retrieval
+    if vector_store is not None:
+        retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+        relevant_docs = retriever.get_relevant_documents(prompt)
+        context = "\n".join([doc.page_content for doc in relevant_docs])
+        st.write('retriever')
+        st.write(retriever)
+        st.write('relevant_docs')
+        st.write(relevant_docs)
+        st.write('context')
+        st.write(context)
+        save_to_google_sheets(prompt, context)
     else:
-        # Jika belum ada, gunakan FAISS untuk mendapatkan konteks
-        if vector_store is not None:
-            retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
-            relevant_docs = retriever.get_relevant_documents(prompt)
-            context = "\n".join([doc.page_content for doc in relevant_docs])
-            
-            # Simpan hasil retrieval ke base knowledge
-            base_knowledge[prompt] = context
-            save_base_knowledge(base_knowledge)
-        else:
-            context = ""
-
-    # Buat prompt augmented
+        context = ""
+    # Jika FAISS tidak ada, hanya gunakan prompt default
     if role == "Laws":
         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
     elif role == "Engineering":
         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_engineering}\n\n{context}\n\nPertanyaan: {prompt}"
     else:
-        return "Peran tidak dikenali.", 0  
+        return "Peran tidak dikenali.", 0  # Kembalikan token_usage default
 
     try:
-        token_usage = 0 
+        token_usage = 0  # Default token usage
 
         if provider == "OpenAI":
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": augmented_prompt}]
             )
-            token_usage = response.usage.total_tokens  
+            token_usage = response.usage.total_tokens  # OpenAI API memberikan jumlah token
             return response.choices[0].message.content, token_usage
         elif provider == "Anthropic":
             response = client.messages.create(
@@ -220,6 +192,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
             return response.text, token_usage
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}", 0
+
 
 # Chat History
 if "messages" not in st.session_state:
@@ -237,7 +210,7 @@ if prompt:
     
     client = set_provider(provider)
     if client:
-        response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
+        response, token_usage, context = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
     else:
         response = "Provider belum diatur."
         token_usage = 0
@@ -247,4 +220,6 @@ if prompt:
         st.markdown(response)
         if provider == "OpenAI":
             st.markdown(f"📊 Token digunakan: **{token_usage}**")
-        
+
+
+    
