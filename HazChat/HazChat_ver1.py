@@ -18,21 +18,24 @@ ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 # Fungsi untuk memuat FAISS index
 
-# Fungsi untuk memuat FAISS index menggunakan FAISS.load_local() dari langchain
+# Fungsi untuk memuat FAISS index menggunakan FAISS.load_local()
 def load_faiss_index(role, base_path="faiss"):
     # Tentukan path untuk folder index berdasarkan role
-    faiss_index_folder = f"{role}_faiss.index"
-    faiss_index_path = os.path.join(base_path, faiss_index_folder)
+    faiss_index_folder = f"{role}_faiss.index"  # Misalnya 'Engineering_faiss.index'
+    faiss_index_path = os.path.join(base_path, faiss_index_folder)  # Path ke folder index
 
-    # Memuat FAISS index jika folder dan file ada
+    # Memuat FAISS index jika folder ada
     if os.path.exists(faiss_index_path):
-        # Memuat FAISS index menggunakan FAISS.load_local() dari langchain
-        vector_store = FAISS.load_local(faiss_index_path)
-        
-        st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
-        return vector_store
+        try:
+            # Memuat FAISS index menggunakan FAISS.load_local() dari langchain
+            vector_store = FAISS.load_local(faiss_index_path)
+            st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
+            return vector_store
+        except Exception as e:
+            st.write(f"⚠️ Gagal memuat FAISS index untuk role {role}: {e}")
+            return None
     else:
-        st.write(f"⚠️ FAISS index untuk role {role} tidak ditemukan.")
+        st.write(f"⚠️ FAISS index untuk role {role} tidak ditemukan di {faiss_index_path}.")
         return None
 
     
