@@ -255,7 +255,10 @@ if "messages" not in st.session_state:
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+        if "latex" in message:
+            st.latex(message["latex"])
+        else:
+            st.markdown(message["content"])
 
 prompt = st.chat_input("Masukkan prompt...")
 if prompt:
