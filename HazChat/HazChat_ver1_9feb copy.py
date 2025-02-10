@@ -1,6 +1,5 @@
 import os
 import streamlit as st
-import pickle
 from openai import OpenAI
 import google.generativeai as genai
 import anthropic
@@ -9,11 +8,49 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OpenAIEmbeddings
 import tiktoken
+import pandas as pd
+from streamlit_gsheets import GSheetsConnection
+from datetime import datetime
 
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+
+# Menghubungkan ke Google Sheets
+conn = st.connection("gsheets", type=GSheetsConnection)
+
+# Fungsi untuk mengambil data dari Google Sheets
+def fetch_existing_data():
+    # Mengambil data dari Google Sheets (Data sheet)
+    existing_data = conn.read(worksheet="Context", usecols=list(range(4)),ttl=5)
+    existing_data = existing_data.dropna(how="all")
+    return existing_data
+
+def save_to_google_sheets(prompt, context):
+    # Mendapatkan tanggal dan jam akses
+    tanggal_akses = datetime.now().strftime("%Y-%m-%d")
+    jam_akses = datetime.now().strftime("%H:%M:%S")
+    
+    # Membuat data baru yang akan disimpan ke Google Sheets
+    user_data = pd.DataFrame(
+        [
+            {
+                "Pertanyaan": prompt,
+                "build_context": context,
+                "Tanggal_Akses": tanggal_akses,
+                "Jam_Akses": jam_akses,
+            }
+        ]
+    )
+    # Ambil data yang sudah ada
+    existing_data = fetch_existing_data()
+    
+    # Gabungkan data lama dengan data baru
+    update_df = pd.concat([existing_data, user_data], ignore_index=True)
+    
+    # Update data ke Google Sheets
+    conn.update(worksheet="Context", data=update_df)
 
 # Inisialisasi vector_store di awal
 if "vector_store" not in st.session_state:
@@ -67,11 +104,6 @@ def load_prompts():
 
     return prompt_engineering, prompt_laws
 
-#  Buat Fungsi untuk Menghitung Token
-def count_tokens(text, model="text-embedding-ada-002"):
-    encoding = tiktoken.encoding_for_model(model)
-    return len(encoding.encode(text))
-
 # Memuat prompt
 prompt_engineering, prompt_laws = load_prompts()
 
@@ -81,18 +113,15 @@ st.markdown('Hazmi Chatbot 😎')
 role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
 
-
 # **Tombol untuk melakukan embedding ulang**
 if st.button("🔄 Run Embedding"):
     knowledge_base = load_knowledge(role)
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = text_splitter.split_text(knowledge_base)
     st.write(f"Jumlah chunks: {len(chunks)}")
-    # Hitung total token dari semua chunks
-    total_tokens = sum(count_tokens(chunk) for chunk in chunks)
-    st.write(f"Total token yang digunakan: **{total_tokens}**")
     # Embedding & FAISS
     embeddings = OpenAIEmbeddings()
+    
     st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
 
 # Fungsi untuk memilih provider
@@ -113,12 +142,13 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
         relevant_docs = retriever.get_relevant_documents(prompt)
         context = "\n".join([doc.page_content for doc in relevant_docs])
-        st.write('retriever')
-        st.write(retriever)
-        st.write('relevant_docs')
-        st.write(relevant_docs)
-        st.write('context')
-        st.write(context)
+        # st.write('retriever')
+        # st.write(retriever)
+        # st.write('relevant_docs')
+        # st.write(relevant_docs)
+        # st.write('context')
+        # st.write(context)
+        save_to_google_sheets(prompt, context)
     else:
         context = ""
     # Jika FAISS tidak ada, hanya gunakan prompt default
@@ -179,4 +209,6 @@ if prompt:
         st.markdown(response)
         if provider == "OpenAI":
             st.markdown(f"📊 Token digunakan: **{token_usage}**")
-        
+
+
+    
