@@ -170,6 +170,7 @@ if prompt:
     client = set_provider(provider)
     if client:
         response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
+        save_to_google_sheetsQnA(prompt, response)
     else:
         response = "Provider belum diatur."
         token_usage = 0
@@ -179,4 +180,3 @@ if prompt:
         st.markdown(response)
         if provider == "OpenAI":
             st.markdown(f"📊 Token digunakan: **{token_usage}**")
-        
