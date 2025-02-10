@@ -11,6 +11,7 @@ import tiktoken
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
+import re
 
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
