@@ -268,14 +268,12 @@ if prompt:
     
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
-        # Render LaTeX formulas
-        st.markdown(response, unsafe_allow_html=False) # Important for security!
+        st.markdown(response, unsafe_allow_html=False)  # Teks selain LaTeX
 
-        # Find and display LaTeX formulas separately for better rendering
-        latex_matches = re.findall(r"\$\$([^$]+)\$\$|\$([^$]+)\$", response) # Matches $$...$$ and $...$
+        latex_matches = re.findall(r"\$\$([^$]+)\$\$|\$([^$]+)\$", response)
         for match in latex_matches:
             formula = match[0] if match[0] else match[1]
-            st.latex(formula)  # Use st.latex to render the formula
+            st.latex(formula)
 
         if provider == "OpenAI":
-            st.markdown(f"📊 Token digunakan: **{token_usage}**")
+            st.markdown(f" Token digunakan: **{token_usage}**")
