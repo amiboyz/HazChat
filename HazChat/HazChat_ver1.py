@@ -270,7 +270,7 @@ if prompt:
     with st.chat_message("assistant"):
         st.markdown(response, unsafe_allow_html=False)  # Teks selain LaTeX
 
-        latex_matches = re.findall(r"\times", response)
+        latex_matches = re.findall(r"\times \cdot", response)
         for match in latex_matches:
             formula = match[0] if match[0] else match[1]
             st.latex(formula)
