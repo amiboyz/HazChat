@@ -208,12 +208,6 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
         relevant_docs = retriever.get_relevant_documents(prompt)
         context = "\n".join([doc.page_content for doc in relevant_docs])
-        # st.write('retriever')
-        # st.write(retriever)
-        # st.write('relevant_docs')
-        # st.write(relevant_docs)
-        # st.write('context')
-        # st.write(context)
         save_to_google_sheets(prompt, context)
     else:
         context = ""
@@ -255,10 +249,7 @@ if "messages" not in st.session_state:
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        if "latex" in message:
-            st.latex(message["latex"])
-        else:
-            st.markdown(message["content"])
+        st.markdown(message["content"])
 
 prompt = st.chat_input("Masukkan prompt...")
 if prompt:
@@ -273,18 +264,17 @@ if prompt:
     else:
         response = "Provider belum diatur."
         token_usage = 0
-        latex_formula = None
-
-    message_data = {"role": "assistant", "content": response}
-    if latex_formula:
-        message_data["latex"] = latex_formula
-       
-    st.session_state.messages.append(message_data)
+    
+    st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
-        st.markdown(response)
-        if latex_formula:
-            st.latex(latex_formula)
+        # Render LaTeX formulas
+        st.markdown(response, unsafe_allow_html=False) # Important for security!
+
+        # Find and display LaTeX formulas separately for better rendering
+        latex_matches = re.findall(r"\$\$([^$]+)\$\$|\$([^$]+)\$", response) # Matches $$...$$ and $...$
+        for match in latex_matches:
+            formula = match[0] if match[0] else match[1]
+            st.latex(formula)  # Use st.latex to render the formula
+
         if provider == "OpenAI":
             st.markdown(f"📊 Token digunakan: **{token_usage}**")
-
-    
