@@ -270,12 +270,18 @@ if prompt:
     else:
         response = "Provider belum diatur."
         token_usage = 0
-    
-    st.session_state.messages.append({"role": "assistant", "content": response})
+        latex_formula = None
+
+    message_data = {"role": "assistant", "content": response}
+    if latex_formula:
+        message_data["latex"] = latex_formula
+       
+    st.session_state.messages.append(message_data)
     with st.chat_message("assistant"):
         st.markdown(response)
+        if latex_formula:
+            st.latex(latex_formula)
         if provider == "OpenAI":
             st.markdown(f"📊 Token digunakan: **{token_usage}**")
-
 
     
