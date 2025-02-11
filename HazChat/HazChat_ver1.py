@@ -179,7 +179,7 @@ def load_prompts():
 def extract_text_from_file(file):
     text = ""
     if file.name.endswith(".pdf"):
-        with fitz.open(file) as pdf:
+        with fitz.open(stream=file.read(), filetype="pdf") as pdf:
             for page in pdf:
                 text += page.get_text() + "\n"
     elif file.name.endswith(".docx"):
@@ -189,6 +189,7 @@ def extract_text_from_file(file):
     elif file.name.endswith(".xlsx"):
         df = pd.read_excel(file, sheet_name=None)
         for sheet_name, sheet in df.items():
+            text += f"\nSheet: {sheet_name}\n"
             text += sheet.to_string(index=False) + "\n"
     return text
 
