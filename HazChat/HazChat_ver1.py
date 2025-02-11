@@ -148,6 +148,21 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}", 0
 
+# Fungsi memuat prompt dari file
+def load_prompts():
+    prompt_dir = os.path.join(os.getcwd(), "add_prompt")
+
+    prompt_engineering_path = os.path.join(prompt_dir, "prompt_engineering.txt")
+    prompt_laws_path = os.path.join(prompt_dir, "prompt_laws.txt")
+
+    prompt_engineering = open(prompt_engineering_path, "r", encoding="utf-8").read() if os.path.exists(prompt_engineering_path) else "Tidak ada prompt engineering tersedia."
+    prompt_laws = open(prompt_laws_path, "r", encoding="utf-8").read() if os.path.exists(prompt_laws_path) else "Tidak ada prompt laws tersedia."
+
+    return prompt_engineering, prompt_laws
+
+# Memuat prompt
+prompt_engineering, prompt_laws = load_prompts()
+
 # Streamlit UI
 st.title("HazChat")
 role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
