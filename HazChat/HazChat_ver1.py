@@ -179,9 +179,9 @@ def load_prompts():
 def extract_text_from_file(file):
     text = ""
     if file.name.endswith(".pdf"):
-        pdf_reader = PdfReader(file)
-        for page in pdf_reader.pages:
-            text += page.extract_text() + "\n"
+        with fitz.open(file) as pdf:
+            for page in pdf:
+                text += page.get_text() + "\n"
     elif file.name.endswith(".docx"):
         doc = Document(file)
         for para in doc.paragraphs:
