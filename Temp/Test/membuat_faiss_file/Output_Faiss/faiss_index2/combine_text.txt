@@ -1,0 +1,433 @@
+LAPORAN KEJADIAN BANJIR
+TANGGAL 29 JANUARI 2025
+
+CURAH HUJAN HARIAN
+28 JANUARI Pkl 07.00 WIB s.d 29 JANUARI Pkl 07.00 WIB
+Keterangan 
+Pemilik
+Keterangan 
+Kota/ Kab.
+Keterangan 
+Hujan
+Curah Hujan 
+Harian
+(mm) 
+Nama Pos Curah Hujan
+29 Januari 2025
+BMKG
+Kota Jakbar
+Ekstrem
+264,00
+Perumnas Cengkareng
+BMKG
+Kota Tangerang
+Ekstrem
+250,00
+St Meteorlogi Soetta
+BMKG
+Kota Jaktim
+Ekstrem
+214,60
+Pulomas
+BMKG
+Kota Jakut
+Ekstrem
+211,00
+Tanjungan
+BMKG
+Kota Jakut
+Ekstrem
+203,00
+Telok Gong
+BMKG
+Kota Jakbar
+Ekstrem
+201,60
+Arg. Tomang
+BMKG
+Kota Jakbar
+Ekstrem
+199,00
+Pompa RW 1 Semanan
+BMKG
+Kota Jakpus
+Ekstrem
+195,00
+Istana
+BMKG
+Kota Jakut
+Ekstrem
+189,00
+Aneka Elok
+BMKG
+Kota Jakut
+Ekstrem
+187,80
+Arg. Kelapa Gading
+BMKG
+Kota Jakpus
+Ekstrem
+185,00
+Sta Meteorlogi 
+Kemayoran
+BMKG
+Kota Jakpus
+Ekstrem
+185,00
+Pompa Cideng
+BMKG
+Kota Jakpus
+Ekstrem
+182,00
+Cempaka Baru
+BBWS CC
+Kab. Bogor
+Ekstrem
+181,00
+Kampung Kelapa
+BMKG
+Kota Jakbar
+Ekstrem
+180,00
+Pinangsia
+BMKG
+Kota Jakut
+Ekstrem
+167,60
+P. Indah Kapuk
+BMKG
+Kota Jakbar
+Ekstrem
+163,00
+Pompa Pool Ppd
+BMKG
+Kota Jaktim
+Ekstrem
+161,00
+Pintu Air Pulo Gadung
+BMKG
+Kota Jakut
+Ekstrem
+155,00
+Sunter III Rawabadak
+BMKG
+Kota Jakpus
+Sangat Lebat
+147,00
+Manggarai
+BMKG
+Kota Jakut
+Sangat Lebat
+146,00
+Pompa Pasar Ikan
+BBWS CC
+Kab. Bogor
+Lebat
+76,50
+Cilember
+BBWS CC
+Kota Bekasi
+Lebat
+64,00
+Leuwi Karet
+BBWS CC
+Kab. Bekasi
+Sedang
+49,50
+Sukawangi
+BBWS CC
+Kab. Bogor
+Sedang
+48,00
+Ranca Bungur
+BBWS CC
+Kab. Bogor
+Sedang
+43,00
+Sumur Batu
+BBWS CC
+Kab. Bogor
+Sedang
+38,50
+Lengkong Barang
+BBWS CC
+Kab. Bogor
+Sedang
+23,00
+AWS Sukamahi
+BBWS CC
+Kota Tangsel
+Sedang
+21,00
+Villa Pamulang
+BBWS CC
+Kota Jaktim
+Sedang
+20,50
+Cawang
+BBWS CC
+Kab. Bekasi
+Ringan
+14,50
+Srimahi
+BBWS CC
+Kab. Bogor
+Ringan
+13,00
+AWS Ciawi
+BBWS CC
+Kota Tangsel
+Ringan
+13,00
+Situ Parigi
+BBWS CC
+Kab. Bogor
+Ringan
+9,00
+Cigudeg
+BBWS CC
+Kab. Bogor
+Ringan
+7,00
+PLTA Kracak
+
+0.00
+100.00
+200.00
+300.00
+400.00
+500.00
+600.00
+700.00
+800.00
+12:00
+13:00
+14:00
+15:00
+16:00
+17:00
+18:00
+19:00
+20:00
+21:00
+22:00
+23:00
+0:00
+1:00
+2:00
+3:00
+4:00
+5:00
+6:00
+7:00
+8:00
+TMA 
+Waktu (Jam)
+Katulampa
+Depok
+Manggarai
+TINGGI MUKA AIR S. CILIWUNG
+28 JANUARI 2025 Pkl 12.00 WIB s.d 29 JANUARI Pkl 10.00 WIB
+Manggarai
+Depok
+Katulampa
+Tingkat Siaga
+> 950 PP
+> 350 cm
+> 200 cm
+Siaga 1
+850 - 950 PP
+270 - 350 cm
+150 - 200 cm
+Siaga 2
+750- 850 PP
+200 - 270 cm
+80 - 150 cm
+Siaga 3
+s/d 750 PP
+s/d 200 cm
+s/d 80 cm
+Siaga 4
+TMA tertinggi di Manggarai
+pada Jam 21.00, dengan
+TMA = 760 PP, dengan
+Debit = 476,35 m3/dt
+(Siaga 3)
+TMA tertinggi di Depok
+pada Jam 20.00, dengan
+TMA = 225 cm, dengan
+Debit = 83.4 m3/dt
+(Siaga 3)
+TMA tertinggi di Katulampa
+pada Jam 16.00, dengan
+TMA = 120 cm, dengan
+Debit = 188,887 m3/dt
+(Siaga 3)
+Manggarai
+Depok
+Katulampa
+JAM
+TGL
+TMA (PP)
+TMA (cm)
+TMA (cm)
+630,00
+100,00
+10,00
+12:00
+28-Jan-25
+630,00
+100,00
+10,00
+13:00
+28-Jan-25
+630,00
+150,00
+30,00
+14:00
+28-Jan-25
+630,00
+150,00
+110,00
+15:00
+28-Jan-25
+630,00
+125,00
+120,00
+16:00
+28-Jan-25
+630,00
+125,00
+90,00
+17:00
+28-Jan-25
+630,00
+125,00
+60,00
+18:00
+28-Jan-25
+630,00
+205,00
+60,00
+19:00
+28-Jan-25
+680,00
+225,00
+50,00
+20:00
+28-Jan-25
+760,00
+165,00
+50,00
+21:00
+28-Jan-25
+750,00
+105,00
+40,00
+22:00
+28-Jan-25
+720,00
+110,00
+30,00
+23:00
+28-Jan-25
+710,00
+105,00
+30,00
+0:00
+29-Jan-25
+710,00
+145,00
+30,00
+1:00
+29-Jan-25
+720,00
+135,00
+30,00
+2:00
+29-Jan-25
+730,00
+135,00
+30,00
+3:00
+29-Jan-25
+750,00
+130,00
+50,00
+4:00
+29-Jan-25
+750,00
+125,00
+50,00
+5:00
+29-Jan-25
+730,00
+120,00
+50,00
+6:00
+29-Jan-25
+715,00
+130,00
+50,00
+7:00
+29-Jan-25
+715,00
+130,00
+50,00
+8:00
+29-Jan-25
+700,00
+140,00
+50,00
+9:00
+29-Jan-25
+700,00
+140,00
+50,00
+10:00
+29-Jan-25
+
+
+Petualangan Kiko di Hutan Ajaib 
+Di sebuah desa kecil yang dikelilingi oleh pepohonan hijau, hiduplah seorang anak bernama 
+Kiko. Ia sangat suka berpetualang dan menemukan hal-hal baru. Suatu hari, Kiko mendengar 
+cerita tentang Hutan Ajaib yang penuh dengan makhluk misterius dan kejutan yang luar biasa. 
+Dengan penuh semangat, Kiko membawa ranselnya dan memasuki hutan. Di dalam hutan, ia 
+bertemu dengan seekor burung biru yang bisa berbicara. 
+"Halo, Kiko! Aku Burung Biru, penjaga hutan ini. Jika kau ingin melanjutkan perjalanan, kau 
+harus menjawab teka-teki ini," kata Burung Biru. 
+"Baiklah! Aku siap!" jawab Kiko dengan antusias. 
+Burung Biru bertanya, "Aku tidak punya sayap, tapi aku bisa terbang ke mana-mana. Aku tidak 
+punya mata, tapi aku bisa membuat orang menangis. Apakah aku?" 
+Kiko berpikir sejenak, lalu tersenyum. "Jawabannya adalah angin!" 
+Burung Biru mengepakkan sayapnya dengan gembira. "Benar sekali! Kau boleh melanjutkan 
+perjalanan. Hati-hati, ya!" 
+Kiko melangkah lebih dalam ke hutan dan menemukan sebuah sungai yang airnya sangat jernih. 
+Di tepi sungai, ada kura-kura tua yang terlihat kesulitan membawa sekeranjang buah-buahan. 
+"Bolehkah aku membantumu?" tanya Kiko. 
+Kura-kura tua tersenyum. "Terima kasih, anak baik. Jika kau membantuku, aku akan memberimu 
+sesuatu yang istimewa." 
+Dengan sigap, Kiko membantu kura-kura itu membawa keranjang buahnya. Setelah selesai, 
+kura-kura memberinya sebuah daun emas yang berkilauan. 
+"Ini adalah Daun Keberanian. Jika kau menghadapi kesulitan, cukup genggam daun ini dan kau 
+akan mendapatkan keberanian yang besar," kata kura-kura. 
+Kiko mengucapkan terima kasih dan melanjutkan perjalanan. Tak lama, ia tiba di sebuah pohon 
+besar yang sangat tinggi. Di puncaknya, ada seekor monyet kecil yang menangis. 
+"Kenapa kau menangis?" tanya Kiko. 
+"Aku kehilangan kacang kesayanganku. Kacang itu jatuh ke bawah dan aku takut turun 
+mencarinya," jawab monyet kecil. 
+
+Kiko menggenggam Daun Keberanian yang diberikan kura-kura. Ia merasa lebih percaya diri 
+dan mulai memanjat pohon dengan hati-hati. Setelah beberapa saat, ia menemukan kacang 
+monyet dan mengembalikannya. 
+Monyet kecil melompat kegirangan. "Terima kasih, Kiko! Sebagai hadiah, aku akan 
+mengantarmu ke pintu keluar hutan ini." 
+Dengan bantuan monyet kecil, Kiko menemukan jalan keluar dan kembali ke desanya dengan 
+hati gembira. Ia telah belajar bahwa keberanian, kebaikan, dan kepintaran dapat membantunya 
+menghadapi tantangan apa pun. 
+Sejak hari itu, Kiko semakin suka berpetualang, dan setiap kali ia memasuki hutan, ia selalu 
+membawa hati yang penuh keberanian dan kebaikan. 
+Pesan Moral: Kebaikan dan keberanian akan selalu membawa kebaikan dalam hidup kita 
+ 
+
+

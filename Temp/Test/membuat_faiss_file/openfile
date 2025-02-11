@@ -1,0 +1,3 @@
+D:
+cd D:\01. Bapak\Github\HazChat\Temp\Test\membuat_faiss_file\
+streamlit run doc2faiss.py
