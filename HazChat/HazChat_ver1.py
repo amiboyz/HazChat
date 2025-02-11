@@ -283,8 +283,8 @@ if uploaded_files:
     
     # Generate embeddings dan simpan ke FAISS
     embeddings = OpenAIEmbeddings()
-    vector_store = FAISS.from_texts(split_texts, embeddings)
-    
+    vector_store_upload = FAISS.from_texts(split_texts, embeddings)
+    st.session_state.vector_store = vector_store_upload
     st.success("Vector store berhasil dibuat!")
     
     # Tombol untuk mengunduh teks
