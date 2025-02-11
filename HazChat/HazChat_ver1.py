@@ -87,6 +87,7 @@ def save_to_google_sheets(prompt, context):
     conn.update(worksheet="Context", data=update_df)
 
 def save_to_google_sheetsQnA(prompt, response):
+
     # Mendapatkan tanggal dan jam akses
     tanggal_akses = datetime.now().strftime("%Y-%m-%d")
     jam_akses = datetime.now().strftime("%H:%M:%S")
@@ -111,18 +112,19 @@ def save_to_google_sheetsQnA(prompt, response):
     
     # Update data ke Google Sheets
     conn.update(worksheet="QnA", data=update_df)
-# Fungsi membaca PDF
-def read_pdf(file_path):
-    text = ""
-    with fitz.open(file_path) as pdf:
-        for page in pdf:
-            text += page.get_text() + "\n"
-    return text
 
-# Fungsi membaca DOCX
-def read_docx(file_path):
-    doc = Document(file_path)
-    return "\n".join([para.text for para in doc.paragraphs])
+# # Fungsi membaca PDF
+# def read_pdf(file_path):
+#     text = ""
+#     with fitz.open(file_path) as pdf:
+#         for page in pdf:
+#             text += page.get_text() + "\n"
+#     return text
+
+# # Fungsi membaca DOCX
+# def read_docx(file_path):
+#     doc = Document(file_path)
+#     return "\n".join([para.text for para in doc.paragraphs])
 
 # Fungsi load data dari folder yang benar
 def load_knowledge(role):
@@ -159,24 +161,10 @@ def load_prompts():
 
     return prompt_engineering, prompt_laws
 
-# Memuat prompt
-prompt_engineering, prompt_laws = load_prompts()
 
-# Streamlit UI
-st.title("HazChat ")
-st.markdown('Hazmi Chatbot 😎')
-role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
-provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
-# Memuat FAISS index untuk role yang ditentukan
-vector_store = load_faiss_index(role)
-# Menyimpan vector_store ke session state agar dapat digunakan dalam aplikasi Streamlit
-if vector_store:
-    st.session_state.vector_store = vector_store
-else:
-    st.session_state.vector_store = None
-# # Inisialisasi vector_store di awal
-# if "vector_store" not in st.session_state:
-#     st.session_state.vector_store = None
+
+
+
 
 # **Tombol untuk melakukan embedding ulang**
 # if st.button("🔄 Run Embedding"):
@@ -188,6 +176,21 @@ else:
 #     embeddings = OpenAIEmbeddings()
     
 #     st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+def extract_text_from_file(file):
+    text = ""
+    if file.name.endswith(".pdf"):
+        pdf_reader = PdfReader(file)
+        for page in pdf_reader.pages:
+            text += page.extract_text() + "\n"
+    elif file.name.endswith(".docx"):
+        doc = Document(file)
+        for para in doc.paragraphs:
+            text += para.text + "\n"
+    elif file.name.endswith(".xlsx"):
+        df = pd.read_excel(file, sheet_name=None)
+        for sheet_name, sheet in df.items():
+            text += sheet.to_string(index=False) + "\n"
+    return text
 
 # Fungsi untuk memilih provider
 def set_provider(provider):
@@ -241,6 +244,63 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
             return response.text, token_usage
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}", 0
+
+# Streamlit UI
+# Memuat prompt
+prompt_engineering, prompt_laws = load_prompts()
+st.title("HazChat ")
+st.markdown('Hazmi Chatbot 😎')
+role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
+provider = st.selectbox("Pilih Provider API", ["OpenAI", "Gemini"])
+uploaded_files = st.file_uploader("Upload file (PDF, DOCX, XLSX)", type=["pdf", "docx", "xlsx"], accept_multiple_files=True)
+
+# Inisialisasi vector_store di awal
+if "vector_store" not in st.session_state:
+    st.session_state.vector_store = None
+
+# **Tombol untuk melakukan embedding ulang**
+if st.button("🔄 Load Base Knowledge"):
+    knowledge_base = load_knowledge(role)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    chunks = text_splitter.split_text(knowledge_base)
+    st.write(f"Jumlah chunks: {len(chunks)}")
+    # Embedding & FAISS
+    embeddings = OpenAIEmbeddings()
+    st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+
+if uploaded_files:
+    all_texts = []
+    filenames = []
+    
+    for uploaded_file in uploaded_files:
+        filenames.append(uploaded_file.name)
+        file_text = extract_text_from_file(uploaded_file)
+        all_texts.append(file_text)
+    
+    # Menampilkan daftar file yang diunggah
+    st.write("### File yang diunggah:")
+    for filename in filenames:
+        st.write(f"- {filename}")
+    
+    # Split teks untuk embedding
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    split_texts = text_splitter.split_text("\n".join(all_texts))
+    
+    # Generate embeddings dan simpan ke FAISS
+    embeddings = OpenAIEmbeddings()
+    vector_store = FAISS.from_texts(split_texts, embeddings)
+    
+    st.success("Vector store berhasil dibuat!")
+    
+    # Tombol untuk mengunduh teks
+    all_text_combined = "\n".join(all_texts)
+    st.download_button(
+        label="Download Teks",
+        data=all_text_combined,
+        file_name="extracted_text.txt",
+        mime="text/plain"
+    )
+
 
 # Chat History
 if "messages" not in st.session_state:
