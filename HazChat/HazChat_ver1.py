@@ -19,8 +19,6 @@ ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 # Fungsi untuk memuat FAISS index
 
-# Fungsi untuk memuat FAISS index menggunakan FAISS.load_local()
-# Fungsi untuk memuat FAISS index dengan embeddings
 # Fungsi untuk memuat FAISS index dengan embeddings
 def load_faiss_index(role, base_path="faiss"):
     # Tentukan path untuk folder index berdasarkan role
@@ -257,7 +255,6 @@ if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-    
     client = set_provider(provider)
     if client:
         response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
@@ -265,15 +262,8 @@ if prompt:
     else:
         response = "Provider belum diatur."
         token_usage = 0
-    
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
-        st.markdown(response, unsafe_allow_html=False)  # Teks selain LaTeX
-
-        latex_matches = re.findall(r"\times \cdot", response)
-        for match in latex_matches:
-            formula = match[0] if match[0] else match[1]
-            st.latex(formula)
-
+        st.markdown(response)
         if provider == "OpenAI":
-            st.markdown(f" Token digunakan: **{token_usage}**")
+            st.markdown(f"📊 Token digunakan: **{token_usage}**")
