@@ -318,7 +318,7 @@ if prompt:
         st.markdown(prompt)
     client = set_provider(provider)
     if client:
-        response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
+        response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering, prompt_upload)
         save_to_google_sheetsQnA(prompt, response)
     else:
         response = "Provider belum diatur."
