@@ -155,11 +155,12 @@ def load_prompts():
 
     prompt_engineering_path = os.path.join(prompt_dir, "prompt_engineering.txt")
     prompt_laws_path = os.path.join(prompt_dir, "prompt_laws.txt")
+    prompt_upload_path = os.path.join(prompt_dir, "prompt_upload.txt")
 
     prompt_engineering = open(prompt_engineering_path, "r", encoding="utf-8").read() if os.path.exists(prompt_engineering_path) else "Tidak ada prompt engineering tersedia."
     prompt_laws = open(prompt_laws_path, "r", encoding="utf-8").read() if os.path.exists(prompt_laws_path) else "Tidak ada prompt laws tersedia."
-
-    return prompt_engineering, prompt_laws
+    prompt_upload = open(prompt_upload_path, "r", encoding="utf-8").read() if os.path.exists(prompt_upload_path) else "Tidak ada prompt upload tersedia."
+    return prompt_engineering, prompt_laws, prompt_upload
 
 # **Tombol untuk melakukan embedding ulang**
 # if st.button("🔄 Run Embedding"):
@@ -205,7 +206,7 @@ def count_tokens(text, model="text-embedding-ada-002"):
     return len(encoding.encode(text))
 
 # Fungsi untuk mendapatkan respons
-def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
+def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering, prompt_upload):
     # Jika FAISS tersedia, gunakan retrieval
     if vector_store is not None:
         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
@@ -216,9 +217,11 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         context = ""
     # Jika FAISS tidak ada, hanya gunakan prompt default
     if role == "Laws":
-        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
+        augmented_prompt = f"Berperanlah sebagai :\n{prompt_laws}\n jadikan data-data ini sebagai referensi dalam menjawab pertanyaa\n{context}\n\nPertanyaan: {prompt}"
     elif role == "Engineering":
-        augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_engineering}\n\n{context}\n\nPertanyaan: {prompt}"
+        augmented_prompt = f"Berperanlah sebagai :\n{prompt_engineering}\n jadikan data-data ini sebagai referensi dalam menjawab pertanyaa\n{context}\n\nPertanyaan: {prompt}"
+    elif role == "Engineering":
+        augmented_prompt = f"Berperanlah sebagai :\n{prompt_upload}\n\n{context}\n\nPertanyaan: {prompt}"    
     else:
         return "Peran tidak dikenali.", 0  # Kembalikan token_usage default
 
@@ -248,10 +251,10 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
 
 # Streamlit UI
 # Memuat prompt
-prompt_engineering, prompt_laws = load_prompts()
+prompt_engineering, prompt_laws, prompt_upload = load_prompts()
 st.title("HazChat ")
 st.markdown('Hazmi Chatbot 😎')
-role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
+role = st.selectbox("Pilih Role", ["Laws", "Engineering", "Upload"])
 provider = st.selectbox("Pilih Provider API", ["OpenAI", "Gemini"])
 uploaded_files = st.file_uploader("Upload file (PDF, DOCX, XLSX)", type=["pdf", "docx", "xlsx"], accept_multiple_files=True)
 
@@ -299,7 +302,6 @@ if uploaded_files:
         file_name="extracted_text.txt",
         mime="text/plain"
     )
-
 
 # Chat History
 if "messages" not in st.session_state:
