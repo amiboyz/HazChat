@@ -161,11 +161,6 @@ def load_prompts():
 
     return prompt_engineering, prompt_laws
 
-
-
-
-
-
 # **Tombol untuk melakukan embedding ulang**
 # if st.button("🔄 Run Embedding"):
 #     knowledge_base = load_knowledge(role)
@@ -176,6 +171,7 @@ def load_prompts():
 #     embeddings = OpenAIEmbeddings()
     
 #     st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+
 def extract_text_from_file(file):
     text = ""
     if file.name.endswith(".pdf"):
@@ -203,6 +199,10 @@ def set_provider(provider):
         genai.configure(api_key=GEMINI_API_KEY)
         return genai
     return None
+#  Buat Fungsi untuk Menghitung Token
+def count_tokens(text, model="text-embedding-ada-002"):
+    encoding = tiktoken.encoding_for_model(model)
+    return len(encoding.encode(text))
 
 # Fungsi untuk mendapatkan respons
 def get_response(provider, client, prompt, role, vector_store, prompt_laws, prompt_engineering):
@@ -280,6 +280,10 @@ if uploaded_files:
     # Split teks untuk embedding
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     split_texts = text_splitter.split_text("\n".join(all_texts))
+    st.write(f"Jumlah chunks: {len(split_texts)}")
+    # Hitung total token dari semua chunks
+    total_tokens = sum(count_tokens(chunk) for chunk in split_texts)
+    st.write(f"Total token yang digunakan: **{total_tokens}**")
     
     # Generate embeddings dan simpan ke FAISS
     embeddings = OpenAIEmbeddings()
