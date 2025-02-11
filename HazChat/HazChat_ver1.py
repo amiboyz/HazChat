@@ -9,6 +9,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OpenAIEmbeddings
 import tiktoken
 import pandas as pd
+from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 
 # API Keys
@@ -20,12 +21,13 @@ GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 def load_faiss_index(role, base_path="faiss"):
     faiss_index_folder = f"faiss_index_{role}"  # Misalnya 'Engineering_faiss.index'
     faiss_index_path = os.path.join(base_path, faiss_index_folder)  # Path ke folder index
-
+    st.write(faiss_index_path)  # Menampilkan path untuk debugging
     # Memuat FAISS index jika folder ada
     if os.path.exists(faiss_index_path):
         try:
             embeddings = OpenAIEmbeddings()
             vector_store = FAISS.load_local(faiss_index_path, embeddings, allow_dangerous_deserialization=True)
+            st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
             return vector_store
         except Exception as e:
             st.write(f"⚠️ Gagal memuat FAISS index untuk role {role}: {e}")
@@ -33,6 +35,70 @@ def load_faiss_index(role, base_path="faiss"):
     else:
         st.write(f"⚠️ FAISS index untuk role {role} tidak ditemukan di {faiss_index_path}.")
         return None
+
+# Menghubungkan ke Google Sheets
+conn = st.connection("gsheets", type=GSheetsConnection)
+# Fungsi untuk mengambil data dari Google Sheets
+def fetch_existing_data():
+    # Mengambil data dari Google Sheets (Data sheet)
+    existing_data = conn.read(worksheet="Context", usecols=list(range(4)),ttl=5)
+    existing_data = existing_data.dropna(how="all")
+    return existing_data
+def fetch_existing_dataQnA():
+    # Mengambil data dari Google Sheets (Data sheet)
+    existing_data = conn.read(worksheet="QnA", usecols=list(range(5)),ttl=5)
+    existing_data = existing_data.dropna(how="all")
+    return existing_data
+def save_to_google_sheets(prompt, context):
+    # Mendapatkan tanggal dan jam akses
+    tanggal_akses = datetime.now().strftime("%Y-%m-%d")
+    jam_akses = datetime.now().strftime("%H:%M:%S")
+    
+    # Membuat data baru yang akan disimpan ke Google Sheets
+    user_data = pd.DataFrame(
+        [
+            {
+                "Pertanyaan": prompt,
+                "build_context": context,
+                "Tanggal_Akses": tanggal_akses,
+                "Jam_Akses": jam_akses,
+            }
+        ]
+    )
+    # Ambil data yang sudah ada
+    existing_data = fetch_existing_data()
+    
+    # Gabungkan data lama dengan data baru
+    update_df = pd.concat([existing_data, user_data], ignore_index=True)
+    
+    # Update data ke Google Sheets
+    conn.update(worksheet="Context", data=update_df)
+
+def save_to_google_sheetsQnA(prompt, response):
+    # Mendapatkan tanggal dan jam akses
+    tanggal_akses = datetime.now().strftime("%Y-%m-%d")
+    jam_akses = datetime.now().strftime("%H:%M:%S")
+    
+    # Membuat data baru yang akan disimpan ke Google Sheets
+    user_data = pd.DataFrame(
+        [
+            {
+                "Pertanyaan": prompt,
+                "Jawaban": response,
+                "Role": role,
+                "Tanggal_Akses": tanggal_akses,
+                "Jam_Akses": jam_akses,
+            }
+        ]
+    )
+    # Ambil data yang sudah ada
+    existing_data = fetch_existing_dataQnA()
+    
+    # Gabungkan data lama dengan data baru
+    update_df = pd.concat([existing_data, user_data], ignore_index=True)
+    
+    # Update data ke Google Sheets
+    conn.update(worksheet="QnA", data=update_df)
 
 # Fungsi untuk membaca PDF
 def read_pdf(file_path):
@@ -46,6 +112,36 @@ def read_pdf(file_path):
 def read_docx(file_path):
     doc = Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
+
+# Fungsi load data dari folder yang benar
+def load_knowledge(role):
+    role_folders = {"Laws": "regulation", "Engineering": "engineering"}
+    BASE_DIR = os.getcwd()
+    data_folder = os.path.join(BASE_DIR, "data", role_folders.get(role, "data"))
+    
+    combined_text = ""
+    if not os.path.exists(data_folder):
+        st.warning(f"⚠️ Folder {data_folder} tidak ditemukan.")
+        return ""
+    
+    for file_name in os.listdir(data_folder):
+        file_path = os.path.join(data_folder, file_name)
+        if not os.path.isfile(file_path):
+            continue
+        
+        if file_name.endswith(".pdf"):
+            combined_text += read_pdf(file_path) + "\n"
+        elif file_name.endswith(".docx"):
+            combined_text += read_docx(file_path) + "\n"
+    
+    return combined_text
+
+# Fungsi memuat prompt dari file
+def load_prompts():
+    prompt_dir = os.path.join(os.getcwd(), "add_prompt")
+
+    prompt_engineering_path = os.path.join(prompt_dir, "prompt_engineering.txt")
+    prompt_laws_path = os.path.join(prompt_dir, "prompt_laws.txt")
 
 # Fungsi untuk memproses file yang di-upload dan membuat vector_store
 def process_files(uploaded_files, path="faiss"):
