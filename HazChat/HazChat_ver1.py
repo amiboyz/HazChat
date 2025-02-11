@@ -156,7 +156,7 @@ provider = st.selectbox("Pilih Provider API", ["OpenAI", "Gemini"])
 # Pilihan untuk load FAISS index
 load_database = st.button("Load Database")
 uploaded_files = st.file_uploader("Upload PDF/DOCX files", type=["pdf", "docx"], accept_multiple_files=True)
-
+st.session_state.vector_store = None
 # Memilih mode
 if load_database:
     vector_store = load_faiss_index(role)
