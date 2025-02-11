@@ -178,7 +178,14 @@ if st.session_state.vector_store:
         st.download_button("Download Combined Text", f"{index_folder}/combine_text.txt", file_name="combine_text.txt")
         st.download_button("Download File List", f"{index_folder}/file_list.txt", file_name="file_list.txt")
 
-# Fungsi untuk mendapatkan respons dan menampilkan
+# Chat History
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
 prompt = st.chat_input("Masukkan prompt...")
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -187,8 +194,14 @@ if prompt:
 
     client = set_provider(provider)
     if client:
-        response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, "", "")
-        st.session_state.messages.append({"role": "assistant", "content": response})
+        response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
+        save_to_google_sheetsQnA(prompt, response)
+    else:
+        response = "Provider belum diatur."
+        token_usage = 0
+
+    st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
         st.markdown(response)
-        st.markdown(f"📊 Token digunakan: **{token_usage}**")
+        if provider == "OpenAI":
+            st.markdown(f"📊 Token digunakan: **{token_usage}**")
