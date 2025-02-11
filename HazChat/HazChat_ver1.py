@@ -12,21 +12,32 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 
+
 # API Keys
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-
 # Fungsi untuk memuat FAISS index
+
+# Fungsi untuk memuat FAISS index menggunakan FAISS.load_local()
+# Fungsi untuk memuat FAISS index dengan embeddings
+# Fungsi untuk memuat FAISS index dengan embeddings
 def load_faiss_index(role, base_path="faiss"):
+    # Tentukan path untuk folder index berdasarkan role
     faiss_index_folder = f"faiss_index_{role}"  # Misalnya 'Engineering_faiss.index'
     faiss_index_path = os.path.join(base_path, faiss_index_folder)  # Path ke folder index
+
     st.write(faiss_index_path)  # Menampilkan path untuk debugging
+
     # Memuat FAISS index jika folder ada
     if os.path.exists(faiss_index_path):
         try:
+            # Membuat instance embeddings
             embeddings = OpenAIEmbeddings()
+
+            # Memuat FAISS index menggunakan FAISS.load_local() dan memberikan embeddings
             vector_store = FAISS.load_local(faiss_index_path, embeddings, allow_dangerous_deserialization=True)
+            
             st.write(f"✅ FAISS index untuk role {role} berhasil dimuat!")
             return vector_store
         except Exception as e:
@@ -35,20 +46,23 @@ def load_faiss_index(role, base_path="faiss"):
     else:
         st.write(f"⚠️ FAISS index untuk role {role} tidak ditemukan di {faiss_index_path}.")
         return None
-
+ 
 # Menghubungkan ke Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
+
 # Fungsi untuk mengambil data dari Google Sheets
 def fetch_existing_data():
     # Mengambil data dari Google Sheets (Data sheet)
     existing_data = conn.read(worksheet="Context", usecols=list(range(4)),ttl=5)
     existing_data = existing_data.dropna(how="all")
     return existing_data
+
 def fetch_existing_dataQnA():
     # Mengambil data dari Google Sheets (Data sheet)
     existing_data = conn.read(worksheet="QnA", usecols=list(range(5)),ttl=5)
     existing_data = existing_data.dropna(how="all")
     return existing_data
+
 def save_to_google_sheets(prompt, context):
     # Mendapatkan tanggal dan jam akses
     tanggal_akses = datetime.now().strftime("%Y-%m-%d")
@@ -99,8 +113,7 @@ def save_to_google_sheetsQnA(prompt, response):
     
     # Update data ke Google Sheets
     conn.update(worksheet="QnA", data=update_df)
-
-# Fungsi untuk membaca PDF
+# Fungsi membaca PDF
 def read_pdf(file_path):
     text = ""
     with fitz.open(file_path) as pdf:
@@ -108,7 +121,7 @@ def read_pdf(file_path):
             text += page.get_text() + "\n"
     return text
 
-# Fungsi untuk membaca DOCX
+# Fungsi membaca DOCX
 def read_docx(file_path):
     doc = Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
@@ -135,7 +148,7 @@ def load_knowledge(role):
             combined_text += read_docx(file_path) + "\n"
     
     return combined_text
-
+          
 # Fungsi memuat prompt dari file
 def load_prompts():
     prompt_dir = os.path.join(os.getcwd(), "add_prompt")
@@ -143,54 +156,40 @@ def load_prompts():
     prompt_engineering_path = os.path.join(prompt_dir, "prompt_engineering.txt")
     prompt_laws_path = os.path.join(prompt_dir, "prompt_laws.txt")
 
-# Fungsi untuk memproses file yang di-upload dan membuat vector_store
-def process_files(uploaded_files, path="faiss"):
-    combined_text = ""
-    file_list = []
+    prompt_engineering = open(prompt_engineering_path, "r", encoding="utf-8").read() if os.path.exists(prompt_engineering_path) else "Tidak ada prompt engineering tersedia."
+    prompt_laws = open(prompt_laws_path, "r", encoding="utf-8").read() if os.path.exists(prompt_laws_path) else "Tidak ada prompt laws tersedia."
 
-    for uploaded_file in uploaded_files:
-        file_name = uploaded_file.name
-        file_path = os.path.join(path, file_name)
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
+    return prompt_engineering, prompt_laws
 
-        file_list.append(file_name)
+# Memuat prompt
+prompt_engineering, prompt_laws = load_prompts()
 
-        if file_name.endswith(".pdf"):
-            combined_text += read_pdf(file_path) + "\n"
-        elif file_name.endswith(".docx"):
-            combined_text += read_docx(file_path) + "\n"
+# Streamlit UI
+st.title("HazChat ")
+st.markdown('Hazmi Chatbot 😎')
+role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
+provider = st.selectbox("Pilih Provider API", ["OpenAI", "Anthropic", "Gemini"])
+# Memuat FAISS index untuk role yang ditentukan
+vector_store = load_faiss_index(role)
+# Menyimpan vector_store ke session state agar dapat digunakan dalam aplikasi Streamlit
+if vector_store:
+    st.session_state.vector_store = vector_store
+else:
+    st.session_state.vector_store = None
+# # Inisialisasi vector_store di awal
+# if "vector_store" not in st.session_state:
+#     st.session_state.vector_store = None
 
-    # Memecah teks menjadi chunks untuk FAISS
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    chunks = text_splitter.split_text(combined_text)
-
-    # Membuat embedding dan FAISS
-    embeddings = OpenAIEmbeddings()
-    vector_store = FAISS.from_texts(chunks, embedding=embeddings)
-
-    # Simpan combined_text dan daftar file yang di-upload
-    save_combined_text_and_files(file_list, combined_text)
-
-    return vector_store
-
-# Fungsi untuk menyimpan combined text dan file list
-def save_combined_text_and_files(file_list, combined_text, path="faiss"):
-    index_folder = f"faiss_index_temp"  # Folder sementara untuk file
-    if not os.path.exists(index_folder):
-        os.makedirs(index_folder)
-
-    # Menyimpan combined text ke dalam file
-    with open(os.path.join(index_folder, "combine_text.txt"), "w") as f:
-        f.write(combined_text)
+# **Tombol untuk melakukan embedding ulang**
+# if st.button("🔄 Run Embedding"):
+#     knowledge_base = load_knowledge(role)
+#     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+#     chunks = text_splitter.split_text(knowledge_base)
+#     st.write(f"Jumlah chunks: {len(chunks)}")
+#     # Embedding & FAISS
+#     embeddings = OpenAIEmbeddings()
     
-    # Menyimpan daftar file yang di-upload
-    with open(os.path.join(index_folder, "file_list.txt"), "w") as f:
-        for file in file_list:
-            f.write(file + "\n")
-    
-    # Simpan path folder untuk referensi selanjutnya
-    return index_folder
+#     st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
 
 # Fungsi untuk memilih provider
 def set_provider(provider):
@@ -210,9 +209,10 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
         relevant_docs = retriever.get_relevant_documents(prompt)
         context = "\n".join([doc.page_content for doc in relevant_docs])
+        save_to_google_sheets(prompt, context)
     else:
         context = ""
-    
+    # Jika FAISS tidak ada, hanya gunakan prompt default
     if role == "Laws":
         augmented_prompt = f"Gunakan informasi berikut jika relevan:\n{prompt_laws}\n\n{context}\n\nPertanyaan: {prompt}"
     elif role == "Engineering":
@@ -225,7 +225,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
 
         if provider == "OpenAI":
             response = client.chat.completions.create(
-                model="gpt-4o mini",
+                model="gpt-4o-mini",
                 messages=[{"role": "user", "content": augmented_prompt}]
             )
             token_usage = response.usage.total_tokens  # OpenAI API memberikan jumlah token
@@ -244,51 +244,6 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
     except Exception as e:
         return f"Terjadi kesalahan: {str(e)}", 0
 
-# Fungsi memuat prompt dari file
-def load_prompts():
-    prompt_dir = os.path.join(os.getcwd(), "add_prompt")
-
-    prompt_engineering_path = os.path.join(prompt_dir, "prompt_engineering.txt")
-    prompt_laws_path = os.path.join(prompt_dir, "prompt_laws.txt")
-
-    prompt_engineering = open(prompt_engineering_path, "r", encoding="utf-8").read() if os.path.exists(prompt_engineering_path) else "Tidak ada prompt engineering tersedia."
-    prompt_laws = open(prompt_laws_path, "r", encoding="utf-8").read() if os.path.exists(prompt_laws_path) else "Tidak ada prompt laws tersedia."
-
-    return prompt_engineering, prompt_laws
-
-# Memuat prompt
-prompt_engineering, prompt_laws = load_prompts()
-
-# Streamlit UI
-st.title("HazChat")
-role = st.selectbox("Pilih Role", ["Laws", "Engineering"])
-provider = st.selectbox("Pilih Provider API", ["OpenAI", "Gemini"])
-
-# Pilihan untuk load FAISS index
-load_database = st.button("Load Database")
-uploaded_files = st.file_uploader("Upload PDF/DOCX files", type=["pdf", "docx"], accept_multiple_files=True)
-st.session_state.vector_store = None
-# Memilih mode
-if load_database:
-    vector_store = load_faiss_index(role)
-    if vector_store:
-        st.session_state.vector_store = vector_store
-        st.success("FAISS index berhasil dimuat!")
-else:
-    if uploaded_files:
-        vector_store = process_files(uploaded_files)
-        st.session_state.vector_store = vector_store
-        st.success("FAISS index berhasil dibuat dari file yang di-upload!")
-    else:
-        st.session_state.vector_store = None
-
-# Menyediakan download file yang di-upload
-if st.session_state.vector_store:
-    index_folder = f"faiss_index_temp"
-    if os.path.exists(index_folder):
-        st.download_button("Download Combined Text", f"{index_folder}/combine_text.txt", file_name="combine_text.txt")
-        st.download_button("Download File List", f"{index_folder}/file_list.txt", file_name="file_list.txt")
-
 # Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -302,7 +257,7 @@ if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-
+    
     client = set_provider(provider)
     if client:
         response, token_usage = get_response(provider, client, prompt, role, st.session_state.vector_store, prompt_laws, prompt_engineering)
@@ -310,9 +265,15 @@ if prompt:
     else:
         response = "Provider belum diatur."
         token_usage = 0
-
+    
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
-        st.markdown(response)
+        st.markdown(response, unsafe_allow_html=False)  # Teks selain LaTeX
+
+        latex_matches = re.findall(r"\times \cdot", response)
+        for match in latex_matches:
+            formula = match[0] if match[0] else match[1]
+            st.latex(formula)
+
         if provider == "OpenAI":
-            st.markdown(f"📊 Token digunakan: **{token_usage}**")
+            st.markdown(f" Token digunakan: **{token_usage}**")
