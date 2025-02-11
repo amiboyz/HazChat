@@ -224,7 +224,7 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
 
         if provider == "OpenAI":
             response = client.chat.completions.create(
-                model="GPT-4o",
+                model="gpt-4o-2024-08-06",
                 messages=[{"role": "user", "content": augmented_prompt}]
             )
             token_usage = response.usage.total_tokens  # OpenAI API memberikan jumlah token
