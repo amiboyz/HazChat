@@ -217,11 +217,11 @@ def get_response(provider, client, prompt, role, vector_store, prompt_laws, prom
         context = ""
     # Jika FAISS tidak ada, hanya gunakan prompt default
     if role == "Laws":
-        augmented_prompt = f"Berperanlah sebagai :\n{prompt_laws}\n jadikan data-data ini sebagai referensi dalam menjawab pertanyaa\n{context}\n\nPertanyaan: {prompt}"
+        augmented_prompt = f"Berperanlah sebagai :\n{prompt_laws}\n jadikan data-data ini sebagai referensi dalam menjawab pertanyaan\n{context}\n\nPertanyaan: {prompt}"
     elif role == "Engineering":
-        augmented_prompt = f"Berperanlah sebagai :\n{prompt_engineering}\n jadikan data-data ini sebagai referensi dalam menjawab pertanyaa\n{context}\n\nPertanyaan: {prompt}"
-    elif role == "Engineering":
-        augmented_prompt = f"Berperanlah sebagai :\n{prompt_upload}\n\n{context}\n\nPertanyaan: {prompt}"    
+        augmented_prompt = f"Berperanlah sebagai :\n{prompt_engineering}\n jadikan data-data ini sebagai referensi dalam menjawab pertanyaan\n{context}\n\nPertanyaan: {prompt}"
+    elif role == "Upload":
+        augmented_prompt = f"Berperanlah sebagai :\n{prompt_upload}\n jadikan data-data ini sebagai referensi dalam menjawab pertanyaan\n{context}\n\nPertanyaan: {prompt}"    
     else:
         return "Peran tidak dikenali.", 0  # Kembalikan token_usage default
 
