@@ -260,13 +260,7 @@ if "vector_store" not in st.session_state:
 
 # **Tombol untuk melakukan embedding ulang**
 if st.button("🔄 Load Base Knowledge"):
-    knowledge_base = load_knowledge(role)
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    chunks = text_splitter.split_text(knowledge_base)
-    st.write(f"Jumlah chunks: {len(chunks)}")
-    # Embedding & FAISS
-    embeddings = OpenAIEmbeddings()
-    st.session_state.vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+    st.session_state.vector_store = load_faiss_index(role)
 
 if uploaded_files:
     all_texts = []
